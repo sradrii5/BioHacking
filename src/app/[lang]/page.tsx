@@ -97,14 +97,20 @@ export default async function Home({ params, searchParams }: Props) {
           <div className="py-20 text-center">
             <div className="text-6xl mb-6">🔍</div>
             <h3 className="text-2xl font-black text-slate-800 mb-2">
-              {lang === 'es' ? 'No hay artículos en esta categoría aún' : 'No articles in this category yet'}
+              {cat === 'Suplementos' && products && products.length > 0
+                ? (lang === 'es' ? 'Próximamente: Investigaciones Científicas' : 'Coming Soon: Scientific Research')
+                : (lang === 'es' ? 'No hay artículos en esta categoría aún' : 'No articles in this category yet')}
             </h3>
-            <p className="text-slate-500 font-medium">
-              {lang === 'es' ? 'Estamos procesando nuevos estudios. Vuelve pronto.' : 'We are processing new studies. Check back soon.'}
+            <p className="text-slate-500 font-medium max-w-md mx-auto">
+              {cat === 'Suplementos' && products && products.length > 0
+                ? (lang === 'es' ? 'Estamos analizando los últimos estudios sobre estos suplementos. ¡Vuelve pronto para leer la ciencia detrás de ellos!' : 'We are analyzing the latest studies on these supplements. Check back soon to read the science behind them!')
+                : (lang === 'es' ? 'Estamos procesando nuevos estudios. Vuelve pronto.' : 'We are processing new studies. Check back soon.')}
             </p>
-            <Link href={`/${lang}`} className="inline-block mt-8 text-blue-600 font-black uppercase tracking-widest text-xs border-b-2 border-blue-600 pb-1">
-              {lang === 'es' ? 'Volver a la Home' : 'Back to Home'}
-            </Link>
+            {!cat && (
+              <Link href={`/${lang}`} className="inline-block mt-8 text-blue-600 font-black uppercase tracking-widest text-xs border-b-2 border-blue-600 pb-1">
+                {lang === 'es' ? 'Volver a la Home' : 'Back to Home'}
+              </Link>
+            )}
           </div>
         )}
         
