@@ -222,12 +222,31 @@ export class AITransformerService {
   injectAffiliateLinks(htmlContent: string, products: { keywords: string[], link: string }[]): string {
     let modifiedContent = htmlContent;
     
-    products.forEach(product => {
-      product.keywords.forEach(keyword => {
-        const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-        // Simple replacement with a link. In production, we'd avoid double linking.
-        modifiedContent = modifiedContent.replace(regex, `<a href="${product.link}" class="affiliate-link" target="_blank" rel="nofollow noreferrer">$1</a>`);
-      });
+    // Sort products by keyword length (descending) to match more specific terms first (e.g., 'Magnesium L-Threonate' before 'Magnesium')
+    const allKeywords = products.flatMap(p => p.keywords.map(kw => ({ kw, link: p.link })));
+    allKeywords.sort((a, b) => b.kw.length - a.kw.length);
+
+    const linkedKeywords = new Set<string>();
+
+    allKeywords.forEach(({ kw, link }) => {
+      if (linkedKeywords.has(kw.toLowerCase())) return;
+
+      const regex = new RegExp(`\\b(${kw})\\b`, 'i'); // 'i' for case-insensitive, no 'g' to only catch first
+      
+      // Simple check to see if the word is already inside an <a> tag (primitive but effective for this use case)
+      const parts = modifiedContent.split(/(<a[^>]*>.*?<\/a>)/gi);
+      let replaced = false;
+
+      modifiedContent = parts.map(part => {
+        if (part.startsWith('<a') || replaced) return part;
+        
+        const newPart = part.replace(regex, (match) => {
+          replaced = true;
+          linkedKeywords.add(kw.toLowerCase());
+          return `<a href="${link}" class="affiliate-link" target="_blank" rel="nofollow noreferrer">${match}</a>`;
+        });
+        return newPart;
+      }).join('');
     });
 
     return modifiedContent;
