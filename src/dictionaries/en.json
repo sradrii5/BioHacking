@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "protocols": "Protocols",
+    "supplements": "Supplements",
+    "science": "Science",
+    "newsletter": "Newsletter"
+  },
+  "home": {
+    "title": "Longevity & Biohacking",
+    "description": "Automated platform based on scientific evidence.",
+    "featured": "Featured",
+    "latest_studies": "Latest Research",
+    "read_more": "Read full analysis",
+    "categories": "Top Categories"
+  },
+  "article": {
+    "executive_summary": "Executive Summary / TL;DR",
+    "scientific_evidence": "Scientific Evidence",
+    "medical_disclaimer_title": "Legal Notice",
+    "medical_disclaimer": "Medical Disclaimer: This content is for informational and educational purposes only. It is not intended to substitute professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition or supplementation.",
+    "updated": "Updated"
+  },
+  "newsletter": {
+    "title_sidebar": "Optimize Your Biology",
+    "description_sidebar": "Join 5,000+ biohackers. Applied science, no fluff.",
+    "title_premium": "Join the 1% optimizing their biology",
+    "description_premium": "Get PubMed summaries and biohacking protocols directly in your inbox every week.",
+    "placeholder": "Your best email...",
+    "button": "Subscribe Now"
+  },
+  "common": {
+    "verified_source": "Verified Source",
+    "trust_score": "Trust Score",
+    "original_study": "View Original Study"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "protocols": "Protocolos",
+    "supplements": "Suplementos",
+    "science": "Ciencia",
+    "newsletter": "Newsletter"
+  },
+  "home": {
+    "title": "Longevidad & Biohacking",
+    "description": "Plataforma automatizada basada en evidencia científica.",
+    "featured": "Destacado",
+    "latest_studies": "Últimas Investigaciones",
+    "read_more": "Leer análisis completo",
+    "categories": "Categorías Top"
+  },
+  "article": {
+    "executive_summary": "Resumen Ejecutivo / TL;DR",
+    "scientific_evidence": "Evidencia Científica",
+    "medical_disclaimer_title": "Aviso Legal",
+    "medical_disclaimer": "Descargo de responsabilidad médica: Este contenido es solo para fines informativos y educativos. No pretende sustituir el consejo, diagnóstico o tratamiento médico profesional. Siempre busque el consejo de su médico u otro proveedor de salud calificado con cualquier pregunta que pueda tener sobre una condición médica o suplementación.",
+    "updated": "Actualizado"
+  },
+  "newsletter": {
+    "title_sidebar": "Optimiza tu Biología",
+    "description_sidebar": "Únete a 5,000+ biohackers. Ciencia aplicada sin relleno.",
+    "title_premium": "Únete al 1% que optimiza su biología",
+    "description_premium": "Recibe resúmenes de PubMed y protocolos de biohacking directamente en tu bandeja de entrada cada semana.",
+    "placeholder": "Tu mejor email...",
+    "button": "Suscribirme Ahora"
+  },
+  "common": {
+    "verified_source": "Fuente Verificada",
+    "trust_score": "Nivel de Confianza",
+    "original_study": "Ver Estudio Original"
+  }
+}
