@@ -8,7 +8,7 @@ export interface StudyMetadata {
   key_benefits: string[];
   trust_score: number;
   product_keywords: string[];
-  category: 'Ciencia' | 'Suplementos' | 'Protocolos';
+  category: 'Ciencia' | 'Recomendaciones' | 'Protocolos';
 }
 
 export interface TransformedPost {
@@ -59,7 +59,7 @@ export class AITransformerService {
         "key_benefits": ["List of 3-5 specific health benefits found in the study"],
         "trust_score": number (0-100, based on study methodology and sample size),
         "product_keywords": ["Identify ANY biohacking products, gadgets, or supplements mentioned (e.g., 'magnesium', 'red light therapy', 'wearables', 'cold plunge', 'blue light glasses')"],
-        "category": "Select one: 'Ciencia', 'Suplementos' or 'Protocolos'"
+        "category": "Select one: 'Ciencia', 'Recomendaciones' (for supplements/gadgets/devices) or 'Protocolos'"
       }
 
       Abstract: ${abstract}

@@ -27,9 +27,9 @@ export default async function Home({ params, searchParams }: Props) {
 
   const { data: articles, error } = await query.order('created_at', { ascending: false });
 
-  // 2. Fetch products if category is Suplementos
-  const { data: products } = cat === 'Suplementos' 
-    ? await supabase.from('products').select('*').limit(6)
+  // 2. Fetch products if category is Recomendaciones
+  const { data: products } = cat === 'Recomendaciones' 
+    ? await supabase.from('products').select('*').limit(12)
     : { data: null };
 
   if (error) {
@@ -50,7 +50,7 @@ export default async function Home({ params, searchParams }: Props) {
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 uppercase tracking-widest">
             <Link href={`/${lang}?cat=Protocolos`} className={`hover:text-blue-600 transition-colors ${cat === 'Protocolos' ? 'text-blue-600' : ''}`}>{dict.nav.protocols}</Link>
-            <Link href={`/${lang}?cat=Suplementos`} className={`hover:text-blue-600 transition-colors ${cat === 'Suplementos' ? 'text-blue-600' : ''}`}>{dict.nav.supplements}</Link>
+            <Link href={`/${lang}?cat=Recomendaciones`} className={`hover:text-blue-600 transition-colors ${cat === 'Recomendaciones' ? 'text-blue-600' : ''}`}>{dict.nav.supplements}</Link>
             <Link href={`/${lang}?cat=Ciencia`} className={`hover:text-blue-600 transition-colors ${cat === 'Ciencia' ? 'text-blue-600' : ''}`}>{dict.nav.science}</Link>
           </div>
           <div className="flex items-center gap-4">
@@ -79,10 +79,10 @@ export default async function Home({ params, searchParams }: Props) {
           </div>
         )}
 
-        {cat === 'Suplementos' && products && products.length > 0 && (
+        {cat === 'Recomendaciones' && products && products.length > 0 && (
           <section className="mb-20">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-8">
-              {lang === 'es' ? 'Catálogo de Suplementación Recomendada' : 'Recommended Supplement Catalog'}
+              {lang === 'es' ? 'Catálogo de Recomendaciones (Suplementos & Gadgets)' : 'Expert Recommendations (Supplements & Gadgets)'}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {products.map((product: any) => (
@@ -97,13 +97,13 @@ export default async function Home({ params, searchParams }: Props) {
           <div className="py-20 text-center">
             <div className="text-6xl mb-6">🔍</div>
             <h3 className="text-2xl font-black text-slate-800 mb-2">
-              {cat === 'Suplementos' && products && products.length > 0
-                ? (lang === 'es' ? 'Próximamente: Investigaciones Científicas' : 'Coming Soon: Scientific Research')
+              {cat === 'Recomendaciones' && products && products.length > 0
+                ? (lang === 'es' ? 'Próximamente: Ciencia Aplicada' : 'Coming Soon: Applied Science')
                 : (lang === 'es' ? 'No hay artículos en esta categoría aún' : 'No articles in this category yet')}
             </h3>
             <p className="text-slate-500 font-medium max-w-md mx-auto">
-              {cat === 'Suplementos' && products && products.length > 0
-                ? (lang === 'es' ? 'Estamos analizando los últimos estudios sobre estos suplementos. ¡Vuelve pronto para leer la ciencia detrás de ellos!' : 'We are analyzing the latest studies on these supplements. Check back soon to read the science behind them!')
+              {cat === 'Recomendaciones' && products && products.length > 0
+                ? (lang === 'es' ? 'Estamos analizando los últimos estudios sobre estas herramientas y compuestos. ¡Vuelve pronto!' : 'We are analyzing the latest studies on these tools and compounds. Check back soon!')
                 : (lang === 'es' ? 'Estamos procesando nuevos estudios. Vuelve pronto.' : 'We are processing new studies. Check back soon.')}
             </p>
             {!cat && (
@@ -207,7 +207,7 @@ export default async function Home({ params, searchParams }: Props) {
               <div className="space-y-4">
                 {[
                   { name: lang === 'es' ? 'Protocolos' : 'Protocols', key: 'Protocolos' },
-                  { name: lang === 'es' ? 'Suplementos' : 'Supplements', key: 'Suplementos' },
+                  { name: lang === 'es' ? 'Recomendaciones' : 'Recommendations', key: 'Recomendaciones' },
                   { name: lang === 'es' ? 'Ciencia' : 'Science', key: 'Ciencia' },
                 ].map((category) => (
                   <Link 
