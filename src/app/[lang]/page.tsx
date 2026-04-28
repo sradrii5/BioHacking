@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ProductCard from '@/components/ProductCard';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getDictionary } from '@/lib/dictionaries';
 
@@ -13,6 +14,7 @@ export default async function Home({ params, searchParams }: Props) {
   const dict = await getDictionary(lang);
   const supabase = getSupabaseAdmin();
 
+  // 1. Fetch articles
   let query = supabase
     .from('articles')
     .select('*')
@@ -20,11 +22,15 @@ export default async function Home({ params, searchParams }: Props) {
     .eq('seo_metadata->>locale', lang);
 
   if (cat) {
-    // We search for the category in seo_metadata->>category
     query = query.eq('seo_metadata->>category', cat);
   }
 
   const { data: articles, error } = await query.order('created_at', { ascending: false });
+
+  // 2. Fetch products if category is Suplementos
+  const { data: products } = cat === 'Suplementos' 
+    ? await supabase.from('products').select('*').limit(6)
+    : { data: null };
 
   if (error) {
     console.error('Error fetching articles:', error);
@@ -71,6 +77,20 @@ export default async function Home({ params, searchParams }: Props) {
               {lang === 'es' ? 'Investigaciones y hallazgos' : 'Research and findings'}
             </p>
           </div>
+        )}
+
+        {cat === 'Suplementos' && products && products.length > 0 && (
+          <section className="mb-20">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-8">
+              {lang === 'es' ? 'Catálogo de Suplementación Recomendada' : 'Recommended Supplement Catalog'}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {products.map((product: any) => (
+                <ProductCard key={product.id} product={product} dict={dict} />
+              ))}
+            </div>
+            <div className="mt-12 border-b border-slate-200"></div>
+          </section>
         )}
 
         {articles && articles.length === 0 && (
