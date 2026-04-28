@@ -20,6 +20,16 @@ export default function ProductCard({ product, dict }: ProductCardProps) {
     }
   };
 
+  const getEmoji = (name: string) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('gafas') || lowerName.includes('glasses')) return '👓';
+    if (lowerName.includes('band') || lowerName.includes('gtr') || lowerName.includes('reloj') || lowerName.includes('watch')) return '⌚';
+    if (lowerName.includes('manta') || lowerName.includes('blanket') || lowerName.includes('sauna')) return '🧖‍♂️';
+    if (lowerName.includes('hongo') || lowerName.includes('mushroom')) return '🍄';
+    if (lowerName.includes('anillo') || lowerName.includes('ring')) return '💍';
+    return '💊';
+  };
+
   return (
     <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col group relative overflow-hidden">
       <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-600/5 rounded-full blur-2xl group-hover:bg-blue-600/10 transition-colors"></div>
@@ -29,7 +39,7 @@ export default function ProductCard({ product, dict }: ProductCardProps) {
           {getPriceIcons(product.price_point)}
         </span>
         <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-          💊
+          {getEmoji(product.name)}
         </div>
       </div>
 
