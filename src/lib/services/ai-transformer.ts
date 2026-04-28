@@ -58,7 +58,7 @@ export class AITransformerService {
         "tl_dr": "One sentence summary for a layperson",
         "key_benefits": ["List of 3-5 specific health benefits found in the study"],
         "trust_score": number (0-100, based on study methodology and sample size),
-        "product_keywords": ["Keywords like 'magnesium', 'vitamin d', etc., for affiliate matching"],
+        "product_keywords": ["Identify ANY biohacking products, gadgets, or supplements mentioned (e.g., 'magnesium', 'red light therapy', 'wearables', 'cold plunge', 'blue light glasses')"],
         "category": "Select one: 'Ciencia', 'Suplementos' or 'Protocolos'"
       }
 
