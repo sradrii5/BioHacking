@@ -29,7 +29,7 @@ export default async function Home({ params, searchParams }: Props) {
 
   // 2. Fetch products if category is Recomendaciones
   const { data: products } = cat === 'Recomendaciones' 
-    ? await supabase.from('products').select('*').limit(12)
+    ? await supabase.from('products').select('*').eq('lang', lang).limit(12)
     : { data: null };
 
   if (error) {
