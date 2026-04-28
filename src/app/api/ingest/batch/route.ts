@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
         if (aErr) throw aErr;
 
-        results.push({ title: metadata.title, status: 'success' });
+        results.push({ title: transformed.metadata.title, status: 'success' });
       } catch (err: any) {
         console.error(`❌ Failed to process study:`, err.message);
         results.push({ title: study.title, status: 'error', error: err.message });
