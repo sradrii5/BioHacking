@@ -29,7 +29,7 @@ export default async function Home({ params, searchParams }: Props) {
 
   // 2. Fetch products if category is Recomendaciones
   const { data: products } = cat === 'Recomendaciones' 
-    ? await supabase.from('products').select('*').eq('lang', lang).limit(12)
+    ? await supabase.from('products').select('*').eq('lang', lang).limit(24)
     : { data: null };
 
   if (error) {
@@ -39,6 +39,9 @@ export default async function Home({ params, searchParams }: Props) {
 
   const featuredArticle = articles?.[0];
   const remainingArticles = articles?.slice(1);
+
+  // Helper to identify gadgets
+  const isGadget = (name: string) => name.toLowerCase().match(/band|gtr|gafas|glasses|manta|sauna|reloj|watch/);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -80,15 +83,40 @@ export default async function Home({ params, searchParams }: Props) {
         )}
 
         {cat === 'Recomendaciones' && products && products.length > 0 && (
-          <section className="mb-20">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-8">
-              {lang === 'es' ? 'Catálogo de Recomendaciones (Suplementos & Gadgets)' : 'Expert Recommendations (Supplements & Gadgets)'}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {products.map((product: any) => (
-                <ProductCard key={product.id} product={product} dict={dict} />
-              ))}
-            </div>
+          <section className="mb-20 space-y-20">
+            {/* Supplements Subsection */}
+            {products.filter((p: any) => !isGadget(p.name)).length > 0 && (
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-4">
+                  <span className="w-12 h-[1px] bg-slate-200"></span>
+                  {lang === 'es' ? 'Suplementación de Precisión' : 'Precision Supplementation'}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {products
+                    .filter((p: any) => !isGadget(p.name))
+                    .map((product: any) => (
+                      <ProductCard key={product.id} product={product} dict={dict} />
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Gadgets Subsection */}
+            {products.filter((p: any) => isGadget(p.name)).length > 0 && (
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-4">
+                  <span className="w-12 h-[1px] bg-slate-200"></span>
+                  {lang === 'es' ? 'Tecnología & Bio-Gadgets' : 'Technology & Bio-Gadgets'}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {products
+                    .filter((p: any) => isGadget(p.name))
+                    .map((product: any) => (
+                      <ProductCard key={product.id} product={product} dict={dict} />
+                    ))}
+                </div>
+              </div>
+            )}
             <div className="mt-12 border-b border-slate-200"></div>
           </section>
         )}
