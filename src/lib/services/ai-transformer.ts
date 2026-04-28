@@ -8,6 +8,7 @@ export interface StudyMetadata {
   key_benefits: string[];
   trust_score: number;
   product_keywords: string[];
+  category: 'Ciencia' | 'Suplementos' | 'Protocolos';
 }
 
 export interface TransformedPost {
@@ -57,7 +58,8 @@ export class AITransformerService {
         "tl_dr": "One sentence summary for a layperson",
         "key_benefits": ["List of 3-5 specific health benefits found in the study"],
         "trust_score": number (0-100, based on study methodology and sample size),
-        "product_keywords": ["Keywords like 'magnesium', 'vitamin d', etc., for affiliate matching"]
+        "product_keywords": ["Keywords like 'magnesium', 'vitamin d', etc., for affiliate matching"],
+        "category": "Select one: 'Ciencia', 'Suplementos' or 'Protocolos'"
       }
 
       Abstract: ${abstract}

@@ -4,19 +4,27 @@ import { getDictionary } from '@/lib/dictionaries';
 
 interface Props {
   params: Promise<{ lang: 'en' | 'es' }>;
+  searchParams: Promise<{ cat?: string }>;
 }
 
-export default async function Home({ params }: Props) {
+export default async function Home({ params, searchParams }: Props) {
   const { lang } = await params;
+  const { cat } = await searchParams;
   const dict = await getDictionary(lang);
   const supabase = getSupabaseAdmin();
 
-  const { data: articles, error } = await supabase
+  let query = supabase
     .from('articles')
     .select('*')
     .eq('status', 'published')
-    .eq('seo_metadata->>locale', lang)
-    .order('created_at', { ascending: false });
+    .eq('seo_metadata->>locale', lang);
+
+  if (cat) {
+    // We search for the category in seo_metadata->>category
+    query = query.eq('seo_metadata->>category', cat);
+  }
+
+  const { data: articles, error } = await query.order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching articles:', error);
@@ -35,9 +43,9 @@ export default async function Home({ params }: Props) {
             LONGEVITY<span className="text-blue-600">BIOHACKER</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 uppercase tracking-widest">
-            <Link href="#" className="hover:text-blue-600 transition-colors">{dict.nav.protocols}</Link>
-            <Link href="#" className="hover:text-blue-600 transition-colors">{dict.nav.supplements}</Link>
-            <Link href="#" className="hover:text-blue-600 transition-colors">{dict.nav.science}</Link>
+            <Link href={`/${lang}?cat=Protocolos`} className={`hover:text-blue-600 transition-colors ${cat === 'Protocolos' ? 'text-blue-600' : ''}`}>{dict.nav.protocols}</Link>
+            <Link href={`/${lang}?cat=Suplementos`} className={`hover:text-blue-600 transition-colors ${cat === 'Suplementos' ? 'text-blue-600' : ''}`}>{dict.nav.supplements}</Link>
+            <Link href={`/${lang}?cat=Ciencia`} className={`hover:text-blue-600 transition-colors ${cat === 'Ciencia' ? 'text-blue-600' : ''}`}>{dict.nav.science}</Link>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex gap-1 bg-slate-100 p-1 rounded-lg">
@@ -54,7 +62,33 @@ export default async function Home({ params }: Props) {
       {/* Main Layout */}
       <main className="container mx-auto px-4 py-12">
         
-        {/* Featured Article (Hero) */}
+        {cat && (
+          <div className="mb-12 border-l-4 border-blue-600 pl-6 py-2">
+            <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900">
+              {cat}
+            </h2>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">
+              {lang === 'es' ? 'Investigaciones y hallazgos' : 'Research and findings'}
+            </p>
+          </div>
+        )}
+
+        {articles && articles.length === 0 && (
+          <div className="py-20 text-center">
+            <div className="text-6xl mb-6">🔍</div>
+            <h3 className="text-2xl font-black text-slate-800 mb-2">
+              {lang === 'es' ? 'No hay artículos en esta categoría aún' : 'No articles in this category yet'}
+            </h3>
+            <p className="text-slate-500 font-medium">
+              {lang === 'es' ? 'Estamos procesando nuevos estudios. Vuelve pronto.' : 'We are processing new studies. Check back soon.'}
+            </p>
+            <Link href={`/${lang}`} className="inline-block mt-8 text-blue-600 font-black uppercase tracking-widest text-xs border-b-2 border-blue-600 pb-1">
+              {lang === 'es' ? 'Volver a la Home' : 'Back to Home'}
+            </Link>
+          </div>
+        )}
+        
+        {/* Featured Article (Hero) - Only show if not filtering or if it's the first one */}
         {featuredArticle && (
           <section className="mb-20">
             <Link href={`/${lang}/${featuredArticle.slug}`} className="group relative block overflow-hidden rounded-[3rem] bg-slate-900 aspect-[21/9] shadow-2xl">

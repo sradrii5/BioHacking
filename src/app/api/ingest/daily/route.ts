@@ -69,6 +69,7 @@ export async function GET(req: Request) {
           status: 'published',
           seo_metadata: { 
             locale: 'es',
+            category: transformed.metadata.category,
             social: transformed.social,
             source_type: study.type 
           }

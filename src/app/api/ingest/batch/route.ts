@@ -52,6 +52,7 @@ export async function POST(req: Request) {
             status: 'published',
             seo_metadata: { 
               locale,
+              category: transformed.metadata.category,
               social: transformed.social
             }
           }, { onConflict: 'slug' })
