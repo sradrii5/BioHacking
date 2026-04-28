@@ -176,13 +176,20 @@ export default async function Home({ params, searchParams }: Props) {
               </div>
             </section>
 
-            {/* Categories / Popular */}
             <section className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
               <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">{dict.home.categories}</h4>
               <div className="space-y-4">
-                {(lang === 'es' ? ['Longevidad', 'Nootrópicos', 'Ayuno', 'Suplementos', 'Sueño'] : ['Longevity', 'Nootropics', 'Fasting', 'Supplements', 'Sleep']).map((cat) => (
-                  <Link key={cat} href="#" className="flex items-center justify-between group py-2">
-                    <span className="text-slate-700 font-bold group-hover:text-blue-600 transition-colors">{cat}</span>
+                {[
+                  { name: lang === 'es' ? 'Protocolos' : 'Protocols', key: 'Protocolos' },
+                  { name: lang === 'es' ? 'Suplementos' : 'Supplements', key: 'Suplementos' },
+                  { name: lang === 'es' ? 'Ciencia' : 'Science', key: 'Ciencia' },
+                ].map((category) => (
+                  <Link 
+                    key={category.key} 
+                    href={`/${lang}?cat=${category.key}`} 
+                    className={`flex items-center justify-between group py-2 ${cat === category.key ? 'text-blue-600' : ''}`}
+                  >
+                    <span className="font-bold group-hover:text-blue-600 transition-colors">{category.name}</span>
                     <span className="text-slate-300 text-xs font-black group-hover:translate-x-1 transition-transform">→</span>
                   </Link>
                 ))}
