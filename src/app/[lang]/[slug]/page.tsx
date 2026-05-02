@@ -68,21 +68,40 @@ export default async function ArticlePage({ params }: Props) {
   }
 
   return (
-    <article className="min-h-screen bg-zinc-950 pb-20 text-zinc-50">
+    <article className="min-h-screen bg-zinc-950 pb-20 text-zinc-50 font-sans">
       {/* Hero Section */}
-      <header className="relative pt-24 pb-16 overflow-hidden">
+      <header className="relative pt-12 md:pt-24 pb-16 overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
         
         <div className="container mx-auto px-4 max-w-4xl text-center">
+          {/* Back Button */}
+          <Link 
+            href={`/${lang}`} 
+            className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 text-[10px] font-black uppercase tracking-[0.3em] group"
+          >
+            <span className="group-hover:-translate-x-1 transition-transform">←</span> {lang === 'es' ? 'Volver al Inicio' : 'Back to Home'}
+          </Link>
+
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="group relative flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full shadow-2xl">
               <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                 {dict.common.trust_score}: <span className="text-blue-500">{article.trust_score}%</span>
               </span>
-              <button className="w-4 h-4 rounded-full bg-zinc-800 text-[8px] flex items-center justify-center font-black hover:bg-blue-600 transition-colors cursor-help" title="Calculado por IA basado en calidad del estudio y factor de impacto">
-                i
-              </button>
+              <div className="relative flex items-center">
+                <button className="w-5 h-5 rounded-full bg-zinc-800 text-[9px] flex items-center justify-center font-black hover:bg-blue-600 transition-colors cursor-help border border-zinc-700">
+                  i
+                </button>
+                {/* Custom Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-left">
+                  <p className="text-[9px] text-zinc-400 leading-relaxed font-medium">
+                    {lang === 'es' 
+                      ? 'Nivel de confianza calculado por IA analizando el rigor del estudio, la muestra (n) y el factor de impacto de la fuente científica.' 
+                      : 'Trust Score calculated by AI analyzing study rigor, sample size (n), and the scientific source impact factor.'}
+                  </p>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-zinc-800"></div>
+                </div>
+              </div>
             </div>
             <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
               {new Date(article.created_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
@@ -96,14 +115,14 @@ export default async function ArticlePage({ params }: Props) {
           {article.tl_dr && (
             <div className="relative group max-w-3xl mx-auto">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-              <div className="relative bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
+              <div className="relative bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
                 <h3 className="text-emerald-500 font-black uppercase tracking-[0.3em] text-[10px] mb-6 flex items-center justify-center gap-3">
                   <span className="w-8 h-[1px] bg-emerald-500/30"></span>
                   {dict.article.executive_summary}
                   <span className="w-8 h-[1px] bg-emerald-500/30"></span>
                 </h3>
-                <p className="text-zinc-200 text-xl md:text-2xl leading-relaxed italic font-medium">
-                  "{article.tl_dr}"
+                <p className="text-zinc-100 text-lg md:text-2xl leading-relaxed italic font-medium">
+                  "{article.tl_dr.replace(/<[^>]*>/g, '')}"
                 </p>
               </div>
             </div>
