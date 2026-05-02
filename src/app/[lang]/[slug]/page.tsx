@@ -59,6 +59,11 @@ export default async function ArticlePage({ params }: Props) {
 
   const study = article.studies;
 
+  // Clean tl_dr: remove 'tl;dr:' or 'TL;DR:' prefix if present
+  const cleanTldr = article.tl_dr
+    ? article.tl_dr.replace(/^tl;dr[:\s]*/i, '').replace(/<[^>]*>/g, '').trim()
+    : null;
+
   // Inject affiliate links
   let finalContent = article.content_html.replace(/```html\n?|```\n?/g, '').trim();
   if (products) {
@@ -114,7 +119,7 @@ export default async function ArticlePage({ params }: Props) {
             {article.title}
           </h1>
 
-          {article.tl_dr && (
+          {cleanTldr && (
             <div className="relative group max-w-3xl mx-auto">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
               <div className="relative bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
@@ -124,7 +129,7 @@ export default async function ArticlePage({ params }: Props) {
                   <span className="w-8 h-[1px] bg-emerald-500/30"></span>
                 </h3>
                 <p className="text-zinc-100 text-lg md:text-2xl leading-relaxed italic font-medium">
-                  "{article.tl_dr.replace(/<[^>]*>/g, '')}"
+                  &ldquo;{cleanTldr}&rdquo;
                 </p>
               </div>
             </div>
@@ -149,6 +154,21 @@ export default async function ArticlePage({ params }: Props) {
                   __html: finalContent
                 }}
               />
+
+              {/* Original Source Link */}
+              {study?.source_url && (
+                <div className="mt-12 flex justify-center">
+                  <a
+                    href={study.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-zinc-900 border border-zinc-700 hover:border-blue-500 rounded-2xl text-sm font-bold text-zinc-300 hover:text-white transition-all group"
+                  >
+                    <span className="text-blue-500">↗</span>
+                    {lang === 'es' ? 'Leer estudio original' : 'Read original study'}
+                  </a>
+                </div>
+              )}
 
               {/* Medical Disclaimer */}
               <div className="mt-24 pt-12 border-t border-zinc-800 text-zinc-500 text-[11px] leading-relaxed italic bg-zinc-950/50 p-8 rounded-[2rem] border border-zinc-800">
