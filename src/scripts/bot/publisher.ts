@@ -69,10 +69,10 @@ export async function publishArticle(article: ProcessedArticle) {
 
     console.log(`Publishing: ${article.title.en}...`);
 
-    // 2. Insert Articles (ES and EN)
+    // 2. Upsert Articles (ES and EN) - silently skip if slug already exists
     const { data: insertedArticles, error: artError } = await supabase
       .from('articles')
-      .insert([
+      .upsert([
         {
           title: article.title.es,
           tl_dr: article.tldr.es,
@@ -99,7 +99,7 @@ export async function publishArticle(article: ProcessedArticle) {
             keywords: ['biohacking', 'longevity', article.category]
           }
         }
-      ])
+      ], { onConflict: 'slug', ignoreDuplicates: true })
       .select();
 
     if (artError) throw artError;
