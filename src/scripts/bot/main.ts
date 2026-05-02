@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables from .env.local (where Supabase and Gemini keys are)
+// Load environment variables immediately before other imports
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 import { fetchPubMed, fetchScienceDaily } from './fetchers';

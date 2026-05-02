@@ -1,13 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 import { ProcessedArticle } from './processor';
 
-// Initialize Supabase with Admin key for the bot
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+let supabaseInstance: any = null;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const getSupabase = () => {
+  if (supabaseInstance) return supabaseInstance;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase credentials (URL and Service Key) are missing in environment variables.');
+  }
+
+  supabaseInstance = createClient(supabaseUrl, supabaseServiceKey);
+  return supabaseInstance;
+};
 
 export async function publishArticle(article: ProcessedArticle) {
+  const supabase = getSupabase();
   try {
     // 1. Check if source already exists to avoid duplicates
     const { data: existing } = await supabase

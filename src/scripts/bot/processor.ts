@@ -1,8 +1,20 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { RawArticle } from './fetchers';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+let modelInstance: any = null;
+
+const getModel = () => {
+  if (modelInstance) return modelInstance;
+
+  const apiKey = process.env.GEMINI_API_KEY || '';
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is missing in environment variables.');
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  modelInstance = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  return modelInstance;
+};
 
 export interface ProcessedArticle {
   title: { es: string; en: string };
@@ -15,6 +27,7 @@ export interface ProcessedArticle {
 
 export async function processArticle(raw: RawArticle): Promise<ProcessedArticle | null> {
   try {
+    const model = getModel();
     const prompt = `
       You are a world-class Biohacking and Longevity expert.
       Translate and expand this scientific news into a professional blog post.
