@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { ScientificSourceCard } from '@/components/ScientificSourceCard';
 import { NewsletterForm } from '@/components/NewsletterForm';
