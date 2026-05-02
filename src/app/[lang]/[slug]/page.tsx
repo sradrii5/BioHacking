@@ -179,26 +179,10 @@ export default async function ArticlePage({ params }: Props) {
               )}
 
               {/* Newsletter Premium Card */}
-              <section className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-blue-900/20 relative overflow-hidden">
-                <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/30 rounded-full blur-[60px]"></div>
-                <h4 className="text-2xl font-black mb-4 relative z-10 tracking-tight leading-tight">{dict.newsletter.title_premium}</h4>
-                <p className="text-slate-400 text-sm mb-8 relative z-10 leading-relaxed font-medium">
-                  {dict.newsletter.description_premium}
-                </p>
-                <div className="space-y-4 relative z-10">
-                  <input
-                    type="email"
-                    placeholder={dict.newsletter.placeholder}
-                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                  />
-                  <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-900/40 uppercase tracking-widest text-xs">
-                    {dict.newsletter.button}
-                  </button>
-                </div>
-              </section>
+              <NewsletterForm />
 
               {/* AdSense Sidebar Placeholder */}
-              <div className="bg-slate-200 w-full h-[600px] rounded-[2.5rem] flex items-center justify-center text-slate-400 text-[10px] uppercase tracking-[0.3em] font-bold text-center p-8 text-balance">
+              <div className="bg-zinc-900 w-full h-[600px] rounded-[3rem] border border-zinc-800 flex items-center justify-center text-zinc-600 text-[10px] uppercase tracking-[0.3em] font-bold text-center p-8 text-balance">
                 {lang === 'es' ? 'Publicidad (AdSense Skyscraper)' : 'Advertising (AdSense Skyscraper)'}
               </div>
             </div>

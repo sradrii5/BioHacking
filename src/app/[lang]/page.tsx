@@ -2,6 +2,7 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getDictionary } from '@/lib/dictionaries';
+import { NewsletterForm } from '@/components/NewsletterForm';
 
 interface Props {
   params: Promise<{ lang: 'en' | 'es' }>;
@@ -219,24 +220,7 @@ export default async function Home({ params, searchParams }: Props) {
 
           {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-10" id="newsletter-section">
-            {/* Newsletter Card */}
-            <section className="bg-gradient-to-br from-blue-900/40 to-zinc-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden border border-blue-500/20 group">
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/20 rounded-full blur-[60px] group-hover:bg-blue-600/30 transition-colors"></div>
-              <h4 className="text-2xl font-black mb-4 relative z-10 leading-tight font-heading">{dict.newsletter.title_sidebar}</h4>
-              <p className="text-zinc-400 text-sm mb-8 relative z-10 leading-relaxed font-medium">
-                {dict.newsletter.description_sidebar}
-              </p>
-              <form className="space-y-4 relative z-10">
-                <input 
-                  type="email" 
-                  placeholder={dict.newsletter.placeholder} 
-                  className="w-full px-6 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-500 transition-all font-medium text-sm"
-                />
-                <button className="w-full bg-white hover:bg-blue-500 hover:text-white text-black font-black py-4 rounded-2xl transition-all shadow-xl uppercase tracking-widest text-[10px] active:scale-95">
-                  {dict.newsletter.button}
-                </button>
-              </form>
-            </section>
+            <NewsletterForm />
 
             <section className="bg-zinc-900 rounded-[3rem] p-10 border border-zinc-800 shadow-sm">
               <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6">{dict.home.categories}</h4>
