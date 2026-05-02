@@ -149,20 +149,22 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
                     <h3 className="font-bold text-lg group-hover:text-blue-400 transition-colors">{article.title}</h3>
                     
                     <div className="flex gap-4 items-center">
-                      {article.seo_metadata?.social ? (
+                      {article.seo_metadata?.social && (
                         <button 
                           onClick={() => setSelectedSocial(selectedSocial === article.id ? null : article.id)}
                           className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 hover:text-blue-400 transition-colors"
                         >
                           {selectedSocial === article.id ? '✕ Cerrar Pack' : '📱 Ver Social Pack'}
                         </button>
-                      ) : (
+                      )}
+                      
+                      {(!article.seo_metadata?.social || article.seo_metadata?.social?.twitter?.includes('Could not generate')) && (
                         <button 
                           onClick={() => handleGenerateSocial(article.id)}
                           disabled={genLoading === article.id}
                           className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 hover:text-emerald-400 transition-colors disabled:text-slate-600"
                         >
-                          {genLoading === article.id ? '⌛ Generando...' : '⚙️ Generar Social Pack'}
+                          {genLoading === article.id ? '⌛ Generando...' : article.seo_metadata?.social ? '🔄 Regenerar Pack' : '⚙️ Generar Social Pack'}
                         </button>
                       )}
                     </div>
