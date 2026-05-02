@@ -56,7 +56,7 @@ export default async function ArticlePage({ params }: Props) {
   }
 
   const study = article.studies;
-  
+
   // Inject affiliate links
   let finalContent = article.content_html.replace(/```html\n?|```\n?/g, '').trim();
   if (products) {
@@ -73,11 +73,11 @@ export default async function ArticlePage({ params }: Props) {
       <header className="relative pt-12 md:pt-24 pb-16 overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
-        
+
         <div className="container mx-auto px-4 max-w-4xl text-center">
           {/* Back Button */}
-          <Link 
-            href={`/${lang}`} 
+          <Link
+            href={`/${lang}`}
             className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 text-[10px] font-black uppercase tracking-[0.3em] group"
           >
             <span className="group-hover:-translate-x-1 transition-transform">←</span> {lang === 'es' ? 'Volver al Inicio' : 'Back to Home'}
@@ -95,8 +95,8 @@ export default async function ArticlePage({ params }: Props) {
                 {/* Custom Tooltip */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-left">
                   <p className="text-[9px] text-zinc-400 leading-relaxed font-medium">
-                    {lang === 'es' 
-                      ? 'Nivel de confianza calculado por IA analizando el rigor del estudio, la muestra (n) y el factor de impacto de la fuente científica.' 
+                    {lang === 'es'
+                      ? 'Nivel de confianza calculado por IA analizando el rigor del estudio, la muestra (n) y el factor de impacto de la fuente científica.'
                       : 'Trust Score calculated by AI analyzing study rigor, sample size (n), and the scientific source impact factor.'}
                   </p>
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-zinc-800"></div>
@@ -107,7 +107,7 @@ export default async function ArticlePage({ params }: Props) {
               {new Date(article.created_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
             </span>
           </div>
-          
+
           <h1 className="text-4xl md:text-7xl font-black text-white leading-[1.05] mb-12 tracking-tighter text-balance font-heading">
             {article.title}
           </h1>
@@ -136,15 +136,15 @@ export default async function ArticlePage({ params }: Props) {
           {/* Main Content */}
           <div className="lg:col-span-8 space-y-12">
             <div className="bg-zinc-900/50 backdrop-blur-sm p-8 md:p-16 rounded-[3rem] border border-zinc-800/50 shadow-2xl">
-              <div 
+              <div
                 className="prose prose-invert prose-xl max-w-none 
                   prose-headings:text-white prose-headings:font-black prose-headings:tracking-tighter prose-headings:font-heading
                   prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:font-medium
                   prose-strong:text-white prose-strong:font-black
                   prose-a:text-blue-400 prose-a:no-underline prose-a:border-b-2 prose-a:border-blue-500/30 hover:prose-a:border-blue-500 transition-all
                   prose-ul:list-disc prose-li:text-zinc-300"
-                dangerouslySetInnerHTML={{ 
-                  __html: finalContent 
+                dangerouslySetInnerHTML={{
+                  __html: finalContent
                 }}
               />
 
@@ -167,7 +167,7 @@ export default async function ArticlePage({ params }: Props) {
               {study && (
                 <section>
                   <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4">{dict.article.scientific_evidence}</h4>
-                  <ScientificSourceCard 
+                  <ScientificSourceCard
                     title={study.title}
                     sourceUrl={study.source_url}
                     publishDate={study.publish_date}
@@ -185,9 +185,9 @@ export default async function ArticlePage({ params }: Props) {
                   {dict.newsletter.description_premium}
                 </p>
                 <div className="space-y-4 relative z-10">
-                  <input 
-                    type="email" 
-                    placeholder={dict.newsletter.placeholder} 
+                  <input
+                    type="email"
+                    placeholder={dict.newsletter.placeholder}
                     className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                   />
                   <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-blue-900/40 uppercase tracking-widest text-xs">
