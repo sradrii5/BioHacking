@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 import { fetchPubMed, fetchScienceDaily } from './fetchers';
 import { processArticle } from './processor';
-import { publishArticle } from './publisher';
+import { publishArticle, isAlreadyPublished } from './publisher';
 
 async function runBot() {
   console.log('🚀 Starting Biohacking Bot...');
@@ -21,6 +21,13 @@ async function runBot() {
 
   // 2. Process and Publish
   for (const item of allItems) {
+    // Check if already exists before processing to save API quota
+    const alreadyExists = await isAlreadyPublished(item.link, item.title);
+    if (alreadyExists) {
+      console.log(`\n⏭️ Skipping (already in DB): ${item.title}`);
+      continue;
+    }
+
     console.log(`\n🧠 Analyzing: ${item.title}`);
     
     const processed = await processArticle(item);
@@ -31,8 +38,9 @@ async function runBot() {
       console.log('⚠️ Failed to process article.');
     }
     
-    // Add a small delay between requests to be nice to the API
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Increased delay to 30s to respect free tier rate limits (15 RPM / 1M TPM)
+    console.log('⏳ Waiting 30s for next article...');
+    await new Promise(resolve => setTimeout(resolve, 30000));
   }
 
   console.log('\n✅ Bot execution finished.');

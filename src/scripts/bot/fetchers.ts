@@ -18,19 +18,30 @@ export interface RawArticle {
  * Fetches latest longevity articles from ScienceDaily RSS
  */
 export async function fetchScienceDaily(): Promise<RawArticle[]> {
-  try {
-    const feed = await parser.parseURL('https://www.news-medical.net/tag/feed/Longevity.aspx');
-    return feed.items.slice(0, 5).map(item => ({
-      title: item.title || '',
-      link: item.link || '',
-      contentSnippet: item.contentSnippet,
-      pubDate: item.pubDate,
-      source: 'News'
-    }));
-  } catch (error) {
-    console.error('Error fetching News:', error);
-    return [];
+  const feeds = [
+    'https://longevity.technology/feed',
+    'https://www.sciencedaily.com/rss/living_well/healthy_aging.xml',
+    'https://www.news-medical.net/tag/feed/Longevity.aspx'
+  ];
+
+  for (const url of feeds) {
+    try {
+      console.log(`📡 Trying RSS feed: ${url}`);
+      const feed = await parser.parseURL(url);
+      if (feed.items.length > 0) {
+        return feed.items.slice(0, 5).map(item => ({
+          title: item.title || '',
+          link: item.link || '',
+          contentSnippet: item.contentSnippet,
+          pubDate: item.pubDate,
+          source: 'News'
+        }));
+      }
+    } catch (error) {
+      console.warn(`⚠️ Failed to fetch RSS from ${url}:`, (error as any).message);
+    }
   }
+  return [];
 }
 
 /**

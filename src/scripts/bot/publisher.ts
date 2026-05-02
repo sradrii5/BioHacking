@@ -17,6 +17,29 @@ const getSupabase = () => {
   return supabaseInstance;
 };
 
+export async function isAlreadyPublished(sourceUrl: string, title: string): Promise<boolean> {
+  const supabase = getSupabase();
+  const normalizedUrl = sourceUrl.replace(/\/$/, '');
+  
+  // 1. Check by URL in studies
+  const { data: study } = await supabase
+    .from('studies')
+    .select('id')
+    .or(`source_url.eq.${normalizedUrl},source_url.eq.${normalizedUrl}/`)
+    .single();
+  
+  if (study) return true;
+
+  // 2. Check by Title in articles (to catch partial inserts)
+  const { data: article } = await supabase
+    .from('articles')
+    .select('id')
+    .ilike('title', `%${title.substring(0, 50)}%`) // Partial match of first 50 chars
+    .limit(1);
+
+  return !!article && article.length > 0;
+}
+
 export async function publishArticle(article: ProcessedArticle) {
   const supabase = getSupabase();
   try {
@@ -32,6 +55,18 @@ export async function publishArticle(article: ProcessedArticle) {
       return;
     }
 
+    // 1.1 Check if slug already exists in articles to avoid constraint error
+    const { data: slugExisting } = await supabase
+      .from('articles')
+      .select('id')
+      .eq('slug', article.slug)
+      .limit(1);
+
+    if (slugExisting && slugExisting.length > 0) {
+      console.log(`Skipping: Slug "${article.slug}" already taken.`);
+      return;
+    }
+
     console.log(`Publishing: ${article.title.en}...`);
 
     // 2. Insert Articles (ES and EN)
@@ -40,21 +75,29 @@ export async function publishArticle(article: ProcessedArticle) {
       .insert([
         {
           title: article.title.es,
-          content: article.content.es,
-          category: article.category,
+          tl_dr: article.tldr.es,
+          content_html: article.content.es,
           trust_score: article.trustScore,
           slug: article.slug,
-          lang: 'es',
-          image_url: `https://images.unsplash.com/photo-1507413245164-6160d8298b31?auto=format&fit=crop&q=80&w=800` // Default science image
+          status: 'published',
+          seo_metadata: {
+            locale: 'es',
+            category: article.category,
+            keywords: ['biohacking', 'longevity', article.category]
+          }
         },
         {
           title: article.title.en,
-          content: article.content.en,
-          category: article.category,
+          tl_dr: article.tldr.en,
+          content_html: article.content.en,
           trust_score: article.trustScore,
           slug: article.slug,
-          lang: 'en',
-          image_url: `https://images.unsplash.com/photo-1507413245164-6160d8298b31?auto=format&fit=crop&q=80&w=800`
+          status: 'published',
+          seo_metadata: {
+            locale: 'en',
+            category: article.category,
+            keywords: ['biohacking', 'longevity', article.category]
+          }
         }
       ])
       .select();
@@ -62,7 +105,7 @@ export async function publishArticle(article: ProcessedArticle) {
     if (artError) throw artError;
 
     // 3. Insert Study reference linked to the Spanish article (main)
-    const spanishArticle = insertedArticles.find(a => a.lang === 'es');
+    const spanishArticle = (insertedArticles as any[]).find((a: any) => a.seo_metadata?.locale === 'es');
     if (spanishArticle) {
       const { error: studyError } = await supabase
         .from('studies')

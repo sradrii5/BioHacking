@@ -26,7 +26,7 @@ export interface TransformedPost {
  */
 export class AITransformerService {
   private genAI: GoogleGenerativeAI;
-  private primaryModelName = "gemini-1.5-flash"; 
+  private primaryModelName = "gemini-2.0-flash"; 
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY || '';
@@ -65,7 +65,7 @@ export class AITransformerService {
       Abstract: ${abstract}
     `;
 
-    const modelsToTry = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash-8b"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
@@ -116,7 +116,7 @@ export class AITransformerService {
       - Total length: around 400-600 words.
     `;
 
-    const modelsToTry = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash-8b"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
@@ -167,7 +167,7 @@ export class AITransformerService {
       }
     `;
 
-    const modelsToTry = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash-8b"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
