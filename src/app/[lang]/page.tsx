@@ -3,6 +3,7 @@ import ProductCard from '@/components/ProductCard';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getDictionary } from '@/lib/dictionaries';
 import { NewsletterForm } from '@/components/NewsletterForm';
+import { AdSenseUnit } from '@/components/AdSenseUnit';
 
 interface Props {
   params: Promise<{ lang: 'en' | 'es' }>;
@@ -213,9 +214,10 @@ export default async function Home({ params, searchParams }: Props) {
             </div>
 
             {/* Home AdSense Placeholder */}
-            <div className="mt-16 p-12 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-[3rem] flex items-center justify-center text-zinc-600 text-[10px] uppercase tracking-[0.3em] font-black h-48 text-center text-balance">
-              {lang === 'es' ? 'Espacio Publicitario (AdSense In-Feed)' : 'Advertising Space (AdSense In-Feed)'}
-            </div>
+            <AdSenseUnit 
+              slot="home_in_feed" 
+              className="mt-16 h-48"
+            />
           </div>
 
           {/* Sidebar */}
@@ -243,9 +245,10 @@ export default async function Home({ params, searchParams }: Props) {
             </section>
 
             {/* Sidebar AdSense */}
-            <div className="bg-zinc-900 w-full h-[600px] rounded-[3rem] border border-zinc-800 flex items-center justify-center text-zinc-600 text-[10px] uppercase tracking-[0.3em] font-bold text-center p-8 text-balance">
-              {lang === 'es' ? 'Publicidad (AdSense Skyscraper)' : 'Advertising (AdSense Skyscraper)'}
-            </div>
+            <AdSenseUnit 
+              slot="sidebar_skyscraper" 
+              className="h-[600px]"
+            />
           </aside>
         </div>
       </main>

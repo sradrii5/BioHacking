@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { ScientificSourceCard } from '@/components/ScientificSourceCard';
 import { NewsletterForm } from '@/components/NewsletterForm';
+import { AdSenseUnit } from '@/components/AdSenseUnit';
 import { AITransformerService } from '@/lib/services/ai-transformer';
 
 import { getDictionary } from '@/lib/dictionaries';
@@ -182,9 +183,10 @@ export default async function ArticlePage({ params }: Props) {
               <NewsletterForm />
 
               {/* AdSense Sidebar Placeholder */}
-              <div className="bg-zinc-900 w-full h-[600px] rounded-[3rem] border border-zinc-800 flex items-center justify-center text-zinc-600 text-[10px] uppercase tracking-[0.3em] font-bold text-center p-8 text-balance">
-                {lang === 'es' ? 'Publicidad (AdSense Skyscraper)' : 'Advertising (AdSense Skyscraper)'}
-              </div>
+              <AdSenseUnit 
+                slot="article_sidebar" 
+                className="h-[600px]"
+              />
             </div>
           </aside>
         </div>
