@@ -46,11 +46,11 @@ export function NewsletterForm() {
       </p>
 
       {status === 'success' ? (
-        <div className="bg-emerald-500/20 text-emerald-400 p-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-emerald-500/30">
+        <div className="bg-emerald-500/20 text-emerald-400 p-6 rounded-2xl font-black uppercase tracking-widest text-xs border border-emerald-500/30 max-w-md mx-auto">
           {message} ✨
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md mx-auto w-full">
           <input 
             type="email" 
             value={email}
@@ -58,14 +58,14 @@ export function NewsletterForm() {
             placeholder="Tu mejor email..." 
             required
             disabled={status === 'loading'}
-            className="flex-1 bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50 text-white"
           />
           <button 
             type="submit"
             disabled={status === 'loading'}
-            className="bg-white text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-500 hover:text-white transition-all shadow-xl active:scale-95 disabled:opacity-50"
+            className="w-full bg-white text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-500 hover:text-white transition-all shadow-xl active:scale-95 disabled:opacity-50"
           >
-            {status === 'loading' ? 'Cargando...' : 'Unirme'}
+            {status === 'loading' ? 'Cargando...' : 'Unirme ahora'}
           </button>
         </form>
       )}
