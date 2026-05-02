@@ -33,12 +33,13 @@ export default async function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Google AdSense Verification */}
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
-          <Script
+          <script
+            async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
             crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
+          ></script>
         )}
         {children}
       </body>
