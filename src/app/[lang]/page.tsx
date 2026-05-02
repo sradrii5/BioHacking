@@ -44,24 +44,27 @@ export default async function Home({ params, searchParams }: Props) {
   const isGadget = (name: string) => name.toLowerCase().match(/band|gtr|gafas|glasses|manta|sauna|reloj|watch/);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-zinc-950 text-zinc-50">
       {/* Premium Navigation Header */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+      <nav className="bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-          <Link href={`/${lang}`} className="text-2xl font-black text-slate-900 tracking-tighter">
-            LONGEVITY<span className="text-blue-600">BIOHACKER</span>
+          <Link href={`/${lang}`} className="text-xl md:text-2xl font-black tracking-tighter flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs">LB</div>
+            LONGEVITY<span className="text-blue-500">BIOHACKER</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 uppercase tracking-widest">
-            <Link href={`/${lang}?cat=Protocolos`} className={`hover:text-blue-600 transition-colors ${cat === 'Protocolos' ? 'text-blue-600' : ''}`}>{dict.nav.protocols}</Link>
-            <Link href={`/${lang}?cat=Recomendaciones`} className={`hover:text-blue-600 transition-colors ${cat === 'Recomendaciones' ? 'text-blue-600' : ''}`}>{dict.nav.supplements}</Link>
-            <Link href={`/${lang}?cat=Ciencia`} className={`hover:text-blue-600 transition-colors ${cat === 'Ciencia' ? 'text-blue-600' : ''}`}>{dict.nav.science}</Link>
+          
+          <div className="hidden lg:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            <Link href={`/${lang}?cat=Protocolos`} className={`hover:text-blue-400 transition-colors ${cat === 'Protocolos' ? 'text-blue-500' : ''}`}>{dict.nav.protocols}</Link>
+            <Link href={`/${lang}?cat=Recomendaciones`} className={`hover:text-blue-400 transition-colors ${cat === 'Recomendaciones' ? 'text-blue-500' : ''}`}>{dict.nav.supplements}</Link>
+            <Link href={`/${lang}?cat=Ciencia`} className={`hover:text-blue-400 transition-colors ${cat === 'Ciencia' ? 'text-blue-500' : ''}`}>{dict.nav.science}</Link>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex gap-1 bg-slate-100 p-1 rounded-lg">
-              <Link href="/es" className={`px-2 py-1 rounded md text-[10px] font-black ${lang === 'es' ? 'bg-white shadow-sm' : 'text-slate-400'}`}>ES</Link>
-              <Link href="/en" className={`px-2 py-1 rounded md text-[10px] font-black ${lang === 'en' ? 'bg-white shadow-sm' : 'text-slate-400'}`}>EN</Link>
+
+          <div className="flex items-center gap-3 md:gap-6">
+            <div className="flex gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+              <Link href="/es" className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'es' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>ES</Link>
+              <Link href="/en" className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'en' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>EN</Link>
             </div>
-            <button className="bg-slate-900 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-blue-600 transition-all">
+            <button className="bg-white text-black px-5 md:px-8 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-white/5 active:scale-95">
               {dict.nav.newsletter}
             </button>
           </div>
@@ -69,15 +72,15 @@ export default async function Home({ params, searchParams }: Props) {
       </nav>
 
       {/* Main Layout */}
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-8 md:py-16 max-w-7xl">
         
         {cat && (
-          <div className="mb-12 border-l-4 border-blue-600 pl-6 py-2">
-            <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900">
+          <div className="mb-16 border-l-4 border-blue-600 pl-8 py-2">
+            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white">
               {cat}
             </h2>
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">
-              {lang === 'es' ? 'Investigaciones y hallazgos' : 'Research and findings'}
+            <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px] mt-4">
+              {lang === 'es' ? 'Protocolos de Vanguardia y Ciencia Aplicada' : 'Cutting-edge Protocols and Applied Science'}
             </p>
           </div>
         )}

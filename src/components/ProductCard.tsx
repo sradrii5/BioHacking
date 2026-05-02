@@ -22,36 +22,36 @@ export default function ProductCard({ product, dict }: ProductCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col group relative overflow-hidden">
+    <div className="bg-zinc-900 rounded-[2.5rem] p-6 border border-zinc-800 shadow-sm hover:shadow-2xl hover:border-zinc-700 transition-all duration-300 flex flex-col group relative overflow-hidden">
       {/* Price Badge */}
-      <div className="absolute left-6 top-6 z-10">
-        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-blue-50">
+      <div className="absolute left-6 top-6 z-10 flex items-center gap-2">
+        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest bg-zinc-950/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-xl border border-zinc-800">
           {getPriceIcons(product.price_point)}
         </span>
       </div>
 
       {/* Product Image */}
-      <div className="w-full aspect-square bg-slate-50 rounded-[2rem] mb-6 overflow-hidden flex items-center justify-center p-6 group-hover:bg-white transition-colors duration-500 border border-transparent group-hover:border-slate-100">
+      <div className="w-full aspect-square bg-zinc-950 rounded-[2rem] mb-6 overflow-hidden flex items-center justify-center p-6 group-hover:bg-zinc-800 transition-colors duration-500 border border-zinc-800">
         {product.image_url ? (
           <img 
             src={product.image_url} 
             alt={product.name} 
-            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" 
+            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
           />
         ) : (
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-3xl">
+          <div className="w-16 h-16 bg-blue-900/20 rounded-full flex items-center justify-center text-3xl text-blue-500">
             🧬
           </div>
         )}
       </div>
 
-      <h4 className="text-lg font-black text-slate-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors">
+      <h4 className="text-lg font-black text-white leading-tight mb-2 group-hover:text-blue-400 transition-colors font-heading">
         {product.name}
       </h4>
 
       <div className="flex flex-wrap gap-2 mb-6">
         {product.keywords.slice(0, 2).map(kw => (
-          <span key={kw} className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+          <span key={kw} className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">
             #{kw}
           </span>
         ))}
@@ -61,7 +61,7 @@ export default function ProductCard({ product, dict }: ProductCardProps) {
         href={product.affiliate_link} 
         target="_blank" 
         rel="nofollow noreferrer"
-        className="mt-auto w-full bg-slate-900 text-white text-center py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-lg hover:shadow-blue-500/20"
+        className="mt-auto w-full bg-white text-black text-center py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95"
       >
         {dict.common?.buy_now || 'Comprar Ahora'}
       </a>
