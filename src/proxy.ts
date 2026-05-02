@@ -6,24 +6,20 @@ const defaultLocale = 'es';
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  console.log('--- Proxy Debug ---');
-  console.log('Pathname:', pathname);
 
   // Check if the pathname is missing a locale
   const pathnameIsMissingLocale = locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   );
-  
-  console.log('Is Missing Locale:', pathnameIsMissingLocale);
 
   // Redirect if there is no locale
   if (pathnameIsMissingLocale) {
-    const redirectUrl = new URL(`/${defaultLocale}${pathname === '/' ? '' : pathname}`, request.url);
-    console.log('Redirecting to:', redirectUrl.toString());
-    return NextResponse.redirect(redirectUrl);
+    // We could detect the user's preferred language here, but the user requested 'es' as default.
+    return NextResponse.redirect(
+      new URL(`/${defaultLocale}${pathname === '/' ? '' : pathname}`, request.url)
+    );
   }
 
-  console.log('Continuing to next path...');
   return NextResponse.next();
 }
 
