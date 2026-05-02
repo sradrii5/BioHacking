@@ -58,6 +58,8 @@ export default async function ArticlePage({ params }: Props) {
   }
 
   const study = article.studies;
+  // Get source URL from seo_metadata (stored by bot) or from linked study
+  const sourceUrl = article.seo_metadata?.source_url || study?.source_url || null;
 
   // Clean tl_dr: remove 'tl;dr:' or 'TL;DR:' prefix if present
   const cleanTldr = article.tl_dr
@@ -125,7 +127,7 @@ export default async function ArticlePage({ params }: Props) {
               <div className="relative bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
                 <h3 className="text-emerald-500 font-black uppercase tracking-[0.3em] text-[10px] mb-6 flex items-center justify-center gap-3">
                   <span className="w-8 h-[1px] bg-emerald-500/30"></span>
-                  {dict.article.executive_summary}
+                  {lang === 'es' ? 'RESUMEN EJECUTIVO' : 'EXECUTIVE SUMMARY'}
                   <span className="w-8 h-[1px] bg-emerald-500/30"></span>
                 </h3>
                 <p className="text-zinc-100 text-lg md:text-2xl leading-relaxed italic font-medium">
@@ -156,10 +158,10 @@ export default async function ArticlePage({ params }: Props) {
               />
 
               {/* Original Source Link */}
-              {study?.source_url && (
+              {sourceUrl && (
                 <div className="mt-12 flex justify-center">
                   <a
-                    href={study.source_url}
+                    href={sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-3 px-8 py-4 bg-zinc-900 border border-zinc-700 hover:border-blue-500 rounded-2xl text-sm font-bold text-zinc-300 hover:text-white transition-all group"
