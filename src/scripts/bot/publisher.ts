@@ -110,7 +110,6 @@ export async function publishArticle(article: ProcessedArticle) {
       const { error: studyError } = await supabase
         .from('studies')
         .insert({
-          article_id: spanishArticle.id,
           title: article.title.en,
           source_url: article.sourceUrl,
           publish_date: new Date().toISOString()
