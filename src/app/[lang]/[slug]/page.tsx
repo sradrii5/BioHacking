@@ -129,7 +129,7 @@ export default async function ArticlePage({ params }: Props) {
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-7xl font-black text-white leading-[1.05] mb-12 tracking-tighter text-balance font-heading">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-12 tracking-tighter text-balance font-heading">
             {article.title}
           </h1>
 
