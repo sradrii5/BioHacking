@@ -58,8 +58,20 @@ export default async function ArticlePage({ params }: Props) {
   }
 
   const study = article.studies;
-  // Get source URL from seo_metadata (stored by bot) or from linked study
-  const sourceUrl = article.seo_metadata?.source_url || study?.source_url || null;
+  // Get source URL: 1st from seo_metadata, 2nd from FK join, 3rd fuzzy match in studies table
+  let sourceUrl = article.seo_metadata?.source_url || study?.source_url || null;
+
+  if (!sourceUrl) {
+    // Fallback: find study by matching the first 40 chars of article title
+    const titleSnippet = article.title.substring(0, 40);
+    const { data: matchedStudy } = await supabase
+      .from('studies')
+      .select('source_url')
+      .ilike('title', `%${titleSnippet}%`)
+      .limit(1)
+      .single();
+    sourceUrl = matchedStudy?.source_url || null;
+  }
 
   // Clean tl_dr: remove 'tl;dr:' or 'TL;DR:' prefix if present
   const cleanTldr = article.tl_dr
