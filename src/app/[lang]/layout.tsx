@@ -35,10 +35,9 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
           <Script
-            async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
             crossOrigin="anonymous"
-            strategy="lazyOnload"
+            strategy="afterInteractive"
           />
         )}
         {children}
