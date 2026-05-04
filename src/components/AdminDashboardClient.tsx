@@ -1,14 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
+  pending:    { label: 'En cola',      color: 'text-yellow-400', dot: 'bg-yellow-400 animate-pulse' },
+  processing: { label: 'Procesando',   color: 'text-blue-400',   dot: 'bg-blue-400 animate-pulse' },
+  done:       { label: 'Completado',   color: 'text-emerald-400',dot: 'bg-emerald-400' },
+  failed:     { label: 'Fallido',      color: 'text-rose-400',   dot: 'bg-rose-400' },
+};
 
 export default function AdminDashboardClient({ lang, recentArticles, products }: any) {
   const [query, setQuery] = useState('');
   const [count, setCount] = useState(5);
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
+  const [queueJobs, setQueueJobs] = useState<any[]>([]);
   const [selectedSocial, setSelectedSocial] = useState<any>(null);
   const [genLoading, setGenLoading] = useState<string | null>(null);
+
+  // Poll queue status every 10s
+  const fetchQueue = useCallback(async () => {
+    const { data } = await supabase
+      .from('ingestion_queue')
+      .select('id, query, locale, status, error_message, created_at, processed_at')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (data) setQueueJobs(data);
+  }, []);
+
+  useEffect(() => {
+    fetchQueue();
+    const interval = setInterval(fetchQueue, 10000);
+    return () => clearInterval(interval);
+  }, [fetchQueue]);
+
+  const handleRetryJob = async (jobId: string) => {
+    await supabase
+      .from('ingestion_queue')
+      .update({ status: 'pending', error_message: null })
+      .eq('id', jobId);
+    fetchQueue();
+  };
 
   const handleGenerateSocial = async (articleId: string) => {
     setGenLoading(articleId);
@@ -33,7 +65,6 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
   const handleBatchIngest = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setResults([]);
 
     try {
       const res = await fetch('/api/ingest/batch', {
@@ -42,11 +73,16 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
         body: JSON.stringify({ query, count, locale: lang })
       });
       const data = await res.json();
-      setResults(data.results || []);
+      if (data.queued > 0) {
+        await fetchQueue(); // Refresh queue immediately
+      } else {
+        alert(data.message || 'No se encontraron artículos para esta búsqueda.');
+      }
     } catch (err) {
-      alert('Error en la ingesta masiva');
+      alert('Error al encolar la ingesta');
     } finally {
       setLoading(false);
+      setQuery('');
     }
   };
 
@@ -96,21 +132,48 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
                 loading ? 'bg-slate-700 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-900/20'
               }`}
             >
-              {loading ? 'Procesando Flota...' : 'Lanzar Ingesta'}
+              {loading ? 'Añadiendo a cola...' : '📥 Encolar Ingesta'}
             </button>
           </form>
+        </section>
 
-          {results.length > 0 && (
-            <div className="mt-8 space-y-2">
-              <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase">Resultados:</h3>
-              {results.map((r, i) => (
-                <div key={i} className="text-[10px] flex items-center justify-between bg-slate-950 p-2 rounded">
-                  <span className="truncate max-w-[150px]">{r.title}</span>
-                  <span className={r.status === 'success' ? 'text-emerald-500' : 'text-rose-500'}>
-                    {r.status === 'success' ? '✅' : '❌'}
-                  </span>
-                </div>
-              ))}
+        {/* Queue Monitor */}
+        <section className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 shadow-2xl">
+          <h2 className="text-xl font-black mb-2 flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+            Cola de Procesamiento
+          </h2>
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-6">Actualización automática cada 10s</p>
+
+          {queueJobs.length === 0 ? (
+            <p className="text-slate-600 text-sm text-center py-4">La cola está vacía 📭</p>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              {queueJobs.map((job) => {
+                const cfg = STATUS_CONFIG[job.status] || STATUS_CONFIG.pending;
+                return (
+                  <div key={job.id} className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold truncate max-w-[140px]">{job.query}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>
+                        <span className={`text-[10px] font-black uppercase ${cfg.color}`}>{cfg.label}</span>
+                      </div>
+                    </div>
+                    {job.error_message && (
+                      <p className="text-[9px] text-rose-400 mt-1 truncate">{job.error_message}</p>
+                    )}
+                    {job.status === 'failed' && (
+                      <button
+                        onClick={() => handleRetryJob(job.id)}
+                        className="mt-2 text-[9px] font-black uppercase tracking-widest text-yellow-500 hover:text-yellow-400"
+                      >
+                        🔄 Reintentar
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>

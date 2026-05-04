@@ -1,80 +1,56 @@
 import { NextResponse } from 'next/server';
 import { PubMedService } from '@/lib/services/pubmed';
-import { AITransformerService } from '@/lib/services/ai-transformer';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
+/**
+ * POST /api/ingest/batch
+ * Enqueues articles for async processing. Returns immediately without doing AI work.
+ * The actual processing is handled by /api/cron/worker (runs every 10 min).
+ */
 export async function POST(req: Request) {
   try {
     const { query, count = 5, locale = 'es' } = await req.json();
-    const pubmed = new PubMedService();
-    const transformer = new AITransformerService();
-    const supabase = getSupabaseAdmin();
 
-    console.log(`🚀 Starting batch ingestion: ${count} articles for "${query}" in ${locale}`);
-
-    const ids = await pubmed.searchStudies(query, count);
-    const studies = await pubmed.fetchStudyDetails(ids);
-    const results = [];
-
-    for (const study of studies) {
-      try {
-        console.log(`Processing study: ${study.title}`);
-        
-        // 1. Save study
-        const { data: savedStudy, error: sErr } = await supabase
-          .from('studies')
-          .upsert({
-            title: study.title,
-            source_url: study.url,
-            publish_date: study.pubDate,
-            raw_summary: study.abstract
-          }, { onConflict: 'source_url' })
-          .select()
-          .single();
-
-        if (sErr) throw sErr;
-
-        // 2. Transform with AI
-        const transformed = await transformer.transformStudy(study.abstract, locale as any);
-
-        // 3. Save Article
-        const slug = transformed.metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        
-        const { data: article, error: aErr } = await supabase
-          .from('articles')
-          .upsert({
-            study_id: savedStudy.id,
-            title: transformed.metadata.title,
-            content_html: transformed.content_html,
-            slug: `${slug}-${Math.random().toString(36).substring(2, 5)}`,
-            tl_dr: transformed.metadata.tl_dr,
-            trust_score: transformed.metadata.trust_score,
-            status: 'published',
-            seo_metadata: { 
-              locale,
-              category: transformed.metadata.category,
-              social: transformed.social
-            }
-          }, { onConflict: 'slug' })
-          .select()
-          .single();
-
-        if (aErr) throw aErr;
-
-        results.push({ title: transformed.metadata.title, status: 'success' });
-      } catch (err: any) {
-        console.error(`❌ Failed to process study:`, err.message);
-        results.push({ title: study.title, status: 'error', error: err.message });
-      }
+    if (!query) {
+      return NextResponse.json({ error: 'query is required' }, { status: 400 });
     }
 
-    return NextResponse.json({ 
-      message: 'Batch processing complete', 
-      results 
+    const pubmed = new PubMedService();
+    const supabase = getSupabaseAdmin();
+
+    // 1. Search PubMed for IDs only (fast, no AI)
+    console.log(`📥 Enqueuing batch: ${count} articles for "${query}" in ${locale}`);
+    const ids = await pubmed.searchStudies(query, count);
+
+    if (ids.length === 0) {
+      return NextResponse.json({ message: 'No articles found for this query.', queued: 0 });
+    }
+
+    // 2. Save one queue job per article ID
+    const jobs = ids.map((pmid) => ({
+      query,
+      locale,
+      pubmed_ids: [pmid],
+      status: 'pending',
+    }));
+
+    const { data, error } = await supabase
+      .from('ingestion_queue')
+      .insert(jobs)
+      .select('id');
+
+    if (error) throw error;
+
+    console.log(`✅ Queued ${data.length} jobs for processing.`);
+
+    return NextResponse.json({
+      message: `${data.length} articles added to the processing queue. The worker will process them in the next few minutes.`,
+      queued: data.length,
+      jobIds: data.map((j: any) => j.id),
     });
 
   } catch (error: any) {
-    console.error('Batch error:', error);
+    console.error('Enqueue error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
