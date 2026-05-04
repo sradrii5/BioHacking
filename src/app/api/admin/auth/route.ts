@@ -16,6 +16,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Contraseña incorrecta' }, { status: 401 });
   }
 
+  const response = NextResponse.json({ success: true });
+
   // Set a simple session flag instead of the password itself to avoid encoding issues
   response.cookies.set('admin_session', 'true', {
     httpOnly: true,
