@@ -259,6 +259,13 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
                           {isDeleting === article.id ? 'Borrando...' : '🗑️ Eliminar'}
                         </button>
 
+                        <Link 
+                          href={`/${lang}/admin/edit/${article.id}`}
+                          className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400"
+                        >
+                          ✏️ Editar
+                        </Link>
+
                         <a 
                           href={`/${article.seo_metadata?.locale || 'es'}/${article.slug}`}
                           target="_blank"
