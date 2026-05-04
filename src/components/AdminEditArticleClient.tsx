@@ -9,8 +9,9 @@ export default function AdminEditArticleClient({ article, lang }: any) {
   const [formData, setFormData] = useState({
     title: article.title,
     tl_dr: article.tl_dr,
-    content: article.content,
+    content: article.content_html || article.content,
     trust_score: article.trust_score,
+    category: article.seo_metadata?.category || 'Ciencia',
   });
   const [loading, setLoading] = useState(false);
 
@@ -53,7 +54,7 @@ export default function AdminEditArticleClient({ article, lang }: any) {
         <h1 className="text-4xl font-black mb-12 tracking-tighter italic uppercase">Editar Artículo</h1>
 
         <form onSubmit={handleSubmit} className="space-y-8 bg-zinc-900 p-8 md:p-12 rounded-[2.5rem] border border-zinc-800 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-8">
             <div className="md:col-span-3">
               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-3 block">Título del Artículo</label>
               <input 
@@ -63,6 +64,19 @@ export default function AdminEditArticleClient({ article, lang }: any) {
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-lg font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 required
               />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-3 block">Categoría</label>
+              <select 
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm font-bold text-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+                required
+              >
+                <option value="Ciencia">Ciencia</option>
+                <option value="Protocolos">Protocolos</option>
+                <option value="Recomendaciones">Recomendaciones</option>
+              </select>
             </div>
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-3 block">Trust Score (%)</label>

@@ -60,9 +60,33 @@ export async function PATCH(
 
     const supabase = getSupabaseAdmin();
 
+    // 1. Fetch current article to get existing metadata
+    const { data: current } = await supabase
+      .from('articles')
+      .select('seo_metadata')
+      .eq('id', id)
+      .single();
+
+    // 2. Prepare payload
+    const { title, tl_dr, content, trust_score, category } = updates;
+    const finalPayload: any = {
+      title,
+      tl_dr,
+      content_html: content,
+      trust_score,
+    };
+
+    // Merge category into metadata if provided
+    if (category) {
+      finalPayload.seo_metadata = {
+        ...(current?.seo_metadata || {}),
+        category
+      };
+    }
+
     const { data, error } = await supabase
       .from('articles')
-      .update(updates)
+      .update(finalPayload)
       .eq('id', id)
       .select()
       .single();

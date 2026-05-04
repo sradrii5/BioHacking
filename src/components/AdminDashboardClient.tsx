@@ -219,14 +219,7 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
               <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
               Cola Activa
             </h2>
-            <div className="flex gap-2">
-              <button 
-                onClick={handleClearQueue}
-                title="Limpiar completados"
-                className="text-[9px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 px-2 py-1.5 rounded-lg border border-slate-700 hover:text-white"
-              >
-                🧹
-              </button>
+            <div className="flex flex-col gap-3">
               <button 
                 onClick={async () => {
                   const res = await fetch('/api/cron/worker', {
@@ -239,9 +232,15 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
                   const { data: updated } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
                   if (updated) setArticles(updated);
                 }}
-                className="text-[9px] font-black uppercase tracking-widest bg-emerald-600/20 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30"
+                className="w-full text-xs font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-4 rounded-xl border border-emerald-500/30 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 flex items-center justify-center gap-2"
               >
-                ⚡ Procesar
+                ⚡ Procesar Ingesta Ahora
+              </button>
+              <button 
+                onClick={handleClearQueue}
+                className="w-full text-[10px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 py-3 rounded-xl border border-slate-700 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                🧹 Limpiar Historial de Cola
               </button>
             </div>
           </div>
