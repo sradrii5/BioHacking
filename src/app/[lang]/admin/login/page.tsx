@@ -1,15 +1,13 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, use } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface Props {
-  params: { lang: string };
-  searchParams: { from?: string };
-}
-
-export default function AdminLoginPage({ params, searchParams }: any) {
+export default function AdminLoginPage({ params: paramsPromise, searchParams: searchParamsPromise }: any) {
   const router = useRouter();
+  const params: any = use(paramsPromise);
+  const searchParams: any = use(searchParamsPromise);
+  
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
