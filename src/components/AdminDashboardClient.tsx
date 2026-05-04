@@ -23,6 +23,9 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
   const [articles, setArticles] = useState<any[]>(recentArticles || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(articles.length >= 50);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Poll queue status every 10s
   const fetchQueue = useCallback(async () => {
@@ -33,6 +36,33 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
       .limit(20);
     if (data) setQueueJobs(data);
   }, []);
+
+  const loadMoreArticles = async () => {
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const from = nextPage * 50;
+    const to = from + 49;
+
+    try {
+      const { data, error } = await supabase
+        .from('articles')
+        .select('id, title, created_at, trust_score, seo_metadata')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (data && data.length > 0) {
+        setArticles(prev => [...prev, ...data]);
+        setPage(nextPage);
+        setHasMore(data.length === 50);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error loading more:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     fetchQueue();
@@ -307,6 +337,18 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
               ))
             )}
           </div>
+
+          {hasMore && (
+            <div className="mt-12 text-center">
+              <button 
+                onClick={loadMoreArticles}
+                disabled={loadingMore}
+                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50"
+              >
+                {loadingMore ? 'Cargando...' : '↓ Cargar más artículos'}
+              </button>
+            </div>
+          )}
         </section>
       </div>
     </div>

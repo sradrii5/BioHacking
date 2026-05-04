@@ -20,7 +20,7 @@ export default async function AdminPage({ params }: Props) {
     .from('articles')
     .select('id, title, created_at, trust_score, seo_metadata')
     .order('created_at', { ascending: false })
-    .limit(5);
+    .limit(50);
 
   // Fetch all products
   const { data: products } = await supabase.from('products').select('*');
