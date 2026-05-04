@@ -13,17 +13,20 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Biohacker Age | Protocolos de Longevidad y Biohacking",
-  description: "Descubre los últimos avances científicos en longevidad, optimización biológica y protocolos de biohacking para vivir más y mejor.",
-  metadataBase: new URL('https://www.biohackerage.com'),
-  alternates: {
-    canonical: '/',
-  },
-  verification: {
-    google: '6NUlRe1_WR9euIXpytbvKZXQSGmq4c9L2usoMAQkmzU',
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  return {
+    title: "Biohacker Age | Protocolos de Longevidad y Biohacking",
+    description: "Descubre los últimos avances científicos en longevidad, optimización biológica y protocolos de biohacking para vivir más y mejor.",
+    metadataBase: new URL('https://www.biohackerage.com'),
+    alternates: {
+      canonical: `/${lang}`,
+    },
+    verification: {
+      google: '6NUlRe1_WR9euIXpytbvKZXQSGmq4c9L2usoMAQkmzU',
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

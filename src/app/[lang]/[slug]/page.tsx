@@ -18,13 +18,16 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { slug } = await params;
+  const { lang, slug } = await params;
   const supabase = getSupabaseAdmin();
   const { data: article } = await supabase.from('articles').select('title, tl_dr').eq('slug', slug).single();
 
   return {
     title: `${article?.title} | Longevity Biohacker`,
     description: article?.tl_dr,
+    alternates: {
+      canonical: `/${lang}/${slug}`,
+    },
     openGraph: {
       title: article?.title,
       description: article?.tl_dr,
