@@ -36,29 +36,39 @@ export class PubMedService {
     const response = await fetch(url);
     const xmlText = await response.text();
     
-    // Simple XML parsing logic (in a real app, use a proper parser like fast-xml-parser)
-    // For this prototype, we use regex to extract content to avoid adding too many dependencies
+    // Split the XML into individual article blocks
+    const articleBlocks = xmlText.split(/<PubmedArticle>|<\/PubmedArticle>/i).filter(block => block.includes('<PMID'));
     const studies: PubMedStudy[] = [];
     
-    pmids.forEach(pmid => {
-      // Very basic regex extraction for the prototype
-      const titleMatch = xmlText.match(/<ArticleTitle>([\s\S]*?)<\/ArticleTitle>/i);
-      const abstractMatch = xmlText.match(/<AbstractText>([\s\S]*?)<\/AbstractText>/i);
-      const yearMatch = xmlText.match(/<Year>(\d{4})<\/Year>/i);
-      const monthMatch = xmlText.match(/<Month>([\s\S]*?)<\/Month>/i);
+    articleBlocks.forEach(block => {
+      const pmidMatch = block.match(/<PMID[^>]*>(\d+)<\/PMID>/i);
+      const titleMatch = block.match(/<ArticleTitle>([\s\S]*?)<\/ArticleTitle>/i);
+      const abstractMatch = block.match(/<AbstractText[^>]*>([\s\S]*?)<\/AbstractText>/i);
       
-      const cleanMonth = monthMatch ? monthMatch[1].padStart(2, '0') : '01';
-      const cleanYear = yearMatch ? yearMatch[1] : new Date().getFullYear().toString();
+      // Date extraction
+      const yearMatch = block.match(/<Year>(\d{4})<\/Year>/i);
+      const monthMatch = block.match(/<Month>([\s\S]*?)<\/Month>/i);
+      
+      const pmid = pmidMatch ? pmidMatch[1] : '';
+      const title = titleMatch ? titleMatch[1].replace(/<[^>]*>?/gm, '').trim() : '';
+      const abstract = abstractMatch ? abstractMatch[1].replace(/<[^>]*>?/gm, '').trim() : '';
+      
+      // ONLY add if it has an actual abstract
+      if (pmid && title && abstract && abstract.length > 10) {
+        const cleanMonth = monthMatch ? monthMatch[1].padStart(2, '0') : '01';
+        const cleanYear = yearMatch ? yearMatch[1] : new Date().getFullYear().toString();
 
-      studies.push({
-        pmid,
-        title: titleMatch ? titleMatch[1].replace(/<[^>]*>?/gm, '') : 'No Title',
-        abstract: abstractMatch ? abstractMatch[1].replace(/<[^>]*>?/gm, '') : 'No Abstract',
-        pubDate: `${cleanYear}-${cleanMonth.match(/^\d+$/) ? cleanMonth : '01'}-01`,
-        url: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`
-      });
+        studies.push({
+          pmid,
+          title,
+          abstract,
+          pubDate: `${cleanYear}-${cleanMonth.match(/^\d+$/) ? cleanMonth : '01'}-01`,
+          url: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`
+        });
+      }
     });
 
+    console.log(`🔍 [PubMed] Found ${studies.length} valid studies with abstracts from ${pmids.length} requested.`);
     return studies;
   }
 }
