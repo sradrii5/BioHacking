@@ -32,19 +32,13 @@ export default function AdminLoginPage() {
         const from = searchParams.get('from');
         const dest = from || `/${lang}/admin`;
         
-        alert('¡Login correcto! Redirigiendo a: ' + dest);
-        router.push(dest);
-        
-        setTimeout(() => {
-          window.location.href = dest; // Fuerza bruta si router.push falla
-        }, 500);
+        // Hard redirect to avoid CSR hangs in production
+        window.location.href = dest;
       } else {
         const data = await res.json();
-        alert('Error del servidor (' + res.status + '): ' + (data.error || 'Desconocido'));
         setError(data.error || 'Contraseña incorrecta');
       }
     } catch (err: any) {
-      alert('Error de conexión crítico: ' + err.message);
       setError('Error de conexión. Inténtalo de nuevo.');
     } finally {
       setLoading(false);

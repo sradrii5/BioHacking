@@ -16,10 +16,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Contraseña incorrecta' }, { status: 401 });
   }
 
-  const response = NextResponse.json({ success: true });
-
-  // HttpOnly prevents JS from reading it, Secure ensures HTTPS only in prod
-  response.cookies.set('admin_session', adminPassword, {
+  // Set a simple session flag instead of the password itself to avoid encoding issues
+  response.cookies.set('admin_session', 'true', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',

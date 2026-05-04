@@ -14,9 +14,9 @@ export default async function proxy(request: NextRequest) {
 
   if (isAdminRoute && !isLoginPage && !isAuthApi) {
     const sessionCookie = request.cookies.get('admin_session');
-    const adminPassword = process.env.ADMIN_PASSWORD;
-
-    if (!adminPassword || sessionCookie?.value !== adminPassword) {
+    
+    // Just check if the session cookie is set to 'true'
+    if (sessionCookie?.value !== 'true') {
       const lang = pathname.split('/')[1] || defaultLocale;
       const loginUrl = new URL(`/${lang}/admin/login`, request.url);
       loginUrl.searchParams.set('from', pathname);
