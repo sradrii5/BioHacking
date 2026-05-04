@@ -153,6 +153,18 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
     alert('Copiado! 🚀');
   };
 
+  const handleClearQueue = async () => {
+    if (!confirm('¿Quieres limpiar el historial de la cola (Completados y Fallidos)?')) return;
+    
+    const { error } = await supabase
+      .from('ingestion_queue')
+      .delete()
+      .in('status', ['done', 'failed']);
+    
+    if (error) alert('Error: ' + error.message);
+    else fetchQueue();
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
       {/* Sidebar: Ingestion & Control */}
@@ -202,22 +214,31 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
               <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
               Cola Activa
             </h2>
-            <button 
-              onClick={async () => {
-                const res = await fetch('/api/cron/worker', {
-                  headers: { 'Authorization': `Bearer biohacker_secret_2026` }
-                });
-                const data = await res.json();
-                alert(`Sesión finalizada: ${data.processed} artículos procesados.`);
-                fetchQueue();
-                // Refresh articles
-                const { data: updated } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
-                if (updated) setArticles(updated);
-              }}
-              className="text-[9px] font-black uppercase tracking-widest bg-emerald-600/20 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30"
-            >
-              ⚡ Procesar Ahora
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={handleClearQueue}
+                title="Limpiar completados"
+                className="text-[9px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 px-2 py-1.5 rounded-lg border border-slate-700 hover:text-white"
+              >
+                🧹
+              </button>
+              <button 
+                onClick={async () => {
+                  const res = await fetch('/api/cron/worker', {
+                    headers: { 'Authorization': `Bearer biohacker_secret_2026` }
+                  });
+                  const data = await res.json();
+                  alert(`Sesión finalizada: ${data.processed} artículos procesados.`);
+                  fetchQueue();
+                  // Refresh articles
+                  const { data: updated } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
+                  if (updated) setArticles(updated);
+                }}
+                className="text-[9px] font-black uppercase tracking-widest bg-emerald-600/20 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30"
+              >
+                ⚡ Procesar
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
