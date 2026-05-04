@@ -287,6 +287,13 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
               onChange={e => setNewProduct({...newProduct, keywords: e.target.value})}
               className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-[10px] text-zinc-400"
             />
+            <input 
+              type="url"
+              placeholder="URL de la imagen (Opcional)"
+              value={newProduct.image_url}
+              onChange={e => setNewProduct({...newProduct, image_url: e.target.value})}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-[10px] text-zinc-400"
+            />
             <div className="flex gap-2">
               <select 
                 value={newProduct.price_point}
