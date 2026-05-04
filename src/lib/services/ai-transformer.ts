@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from 'groq-sdk';
 
 export type Locale = 'es' | 'en';
 
@@ -22,34 +23,35 @@ export interface TransformedPost {
 }
 
 /**
- * Service to interface with Gemini for content transformation.
+ * Service to interface with AI engines (Groq/Gemini) for content transformation.
  */
 export class AITransformerService {
   private genAI: GoogleGenerativeAI;
+  private groq: Groq | null = null;
   private primaryModelName = "gemini-2.0-flash"; 
 
   constructor() {
-    const apiKey = process.env.GEMINI_API_KEY || '';
-    if (!apiKey) {
-      console.warn('GEMINI_API_KEY missing. AI features will fail.');
+    const geminiKey = process.env.GEMINI_API_KEY || '';
+    this.genAI = new GoogleGenerativeAI(geminiKey);
+
+    const groqKey = process.env.GROQ_API_KEY || '';
+    if (groqKey) {
+      this.groq = new Groq({ apiKey: groqKey });
+      console.log('🚀 Groq engine initialized as primary.');
     }
-    this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
   /**
-   * Helper to get the model with fallback logic.
+   * Helper to get the Gemini model.
    */
-  private getModel(isJson: boolean = false, modelName: string = this.primaryModelName) {
-    return this.genAI.getGenerativeModel({ 
-      model: modelName,
-    }, { apiVersion: "v1beta" });
+  private getGeminiModel(modelName: string = this.primaryModelName) {
+    return this.genAI.getGenerativeModel({ model: modelName }, { apiVersion: "v1beta" });
   }
 
   /**
    * Step 1: Extracts key points and metadata from a raw scientific abstract.
    */
   async extractKeyPoints(abstract: string, locale: Locale = 'es'): Promise<StudyMetadata> {
-    const model = this.getModel(true);
     const prompt = `
       Analyze the following scientific abstract and extract key information in ${locale === 'es' ? 'Spanish' : 'English'}.
       Return a JSON object with the following structure:
@@ -57,86 +59,94 @@ export class AITransformerService {
         "title": "Clear and engaging title for humans",
         "tl_dr": "One sentence summary for a layperson",
         "key_benefits": ["List of 3-5 specific health benefits found in the study"],
-        "trust_score": number (0-100, based on study methodology and sample size),
-        "product_keywords": ["Identify ANY biohacking products, gadgets, or supplements mentioned (e.g., 'magnesium', 'red light therapy', 'wearables', 'cold plunge', 'blue light glasses')"],
-        "category": "Select one: 'Ciencia', 'Recomendaciones' (for supplements/gadgets/devices) or 'Protocolos'"
+        "trust_score": number (0-100),
+        "product_keywords": ["Identify ANY biohacking products, gadgets, or supplements mentioned"],
+        "category": "Select one: 'Ciencia', 'Recomendaciones' or 'Protocolos'"
       }
 
       Abstract: ${abstract}
     `;
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash-8b"];
+    // 1. Try Groq first (extremely fast)
+    if (this.groq) {
+      try {
+        console.log('⚡ Trying Groq (llama-3.3-70b) for extraction...');
+        const completion = await this.groq.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+          temperature: 0.1,
+        });
+        return JSON.parse(completion.choices[0]?.message?.content || '{}');
+      } catch (error: any) {
+        console.warn('⚠️ Groq failed, falling back to Gemini:', error.message);
+      }
+    }
+
+    // 2. Fallback to Gemini
+    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
-      let retries = 5;
-      const model = this.getModel(true, modelName);
-      
-      while (retries > 0) {
-        try {
-          console.log(`Trying model: ${modelName}...`);
-          const result = await model.generateContent(prompt);
-          const response = await result.response;
-          const text = response.text();
-          const cleanJson = text.replace(/```json\n?|\n?```/g, '').trim();
-          return JSON.parse(cleanJson);
-        } catch (error: any) {
-          lastError = error;
-          if (error.status === 429) {
-            console.log(`Rate limit hit on ${modelName}. Relinquishing job to avoid timeout.`);
-            throw error; // Throw immediately, don't wait
-          }
-          console.warn(`Model ${modelName} failed: ${error.message}`);
-          break; // Try next model
-        }
+      const model = this.getGeminiModel(modelName);
+      try {
+        console.log(`Trying Gemini (${modelName}) for extraction...`);
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        const cleanJson = text.replace(/```json\n?|\n?```/g, '').trim();
+        return JSON.parse(cleanJson);
+      } catch (error: any) {
+        lastError = error;
+        if (error.status === 429) throw error; // Re-throw rate limit to trigger queue retry
       }
     }
-    throw lastError || new Error("All models failed");
+    throw lastError || new Error("All AI models failed for extraction");
   }
 
   /**
    * Step 2: Redacts the full post based on previously extracted metadata.
    */
   async generatePost(metadata: StudyMetadata, locale: Locale = 'es'): Promise<string> {
-    const model = this.getModel(false);
-    
     const prompt = `
       Write a compelling, science-based blog post in ${locale === 'es' ? 'Spanish' : 'English'} for a longevity/biohacking audience.
-      Use the following metadata as a base:
+      Use HTML tags (h2, p, strong, ul, li). Authoritative yet accessible tone.
       Title: ${metadata.title}
       Key Benefits: ${metadata.key_benefits.join(', ')}
       Trust Score: ${metadata.trust_score}%
-      
-      Requirements:
-      - Use HTML tags (h2, p, strong, ul, li).
-      - Style should be authoritative yet accessible (Senior Full Stack Developer / Biohacker persona).
-      - Include a section on practical application.
-      - Total length: around 400-600 words.
     `;
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
+    // 1. Try Groq
+    if (this.groq) {
+      try {
+        console.log('⚡ Trying Groq (llama-3.3-70b) for generation...');
+        const completion = await this.groq.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+        });
+        return completion.choices[0]?.message?.content || '';
+      } catch (error: any) {
+        console.warn('⚠️ Groq failed in generation, falling back to Gemini:', error.message);
+      }
+    }
+
+    // 2. Fallback to Gemini
+    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
-      const model = this.getModel(false, modelName);
-      
+      const model = this.getGeminiModel(modelName);
       try {
-        console.log(`Trying model in generatePost: ${modelName}...`);
+        console.log(`Trying Gemini (${modelName}) for generation...`);
         const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = result.response.text();
         return text.replace(/```html\n?|```\n?/g, '').trim();
       } catch (error: any) {
         lastError = error;
-        if (error.status === 429) {
-          console.log(`Rate limit in generatePost on ${modelName}. Relinquishing job.`);
-          throw error;
-        }
-        console.warn(`Model ${modelName} failed in generatePost: ${error.message}`);
-        continue; // Try next model
+        if (error.status === 429) throw error;
       }
     }
-    throw lastError || new Error("All models failed in generatePost");
+    throw lastError || new Error("All AI models failed for generation");
   }
 
   /**
@@ -160,22 +170,38 @@ export class AITransformerService {
       }
     `;
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash-8b"];
+    // 1. Try Groq
+    if (this.groq) {
+      try {
+        console.log('⚡ Trying Groq (llama-3.3-70b) for social posts...');
+        const completion = await this.groq.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+        });
+        return JSON.parse(completion.choices[0]?.message?.content || '{}');
+      } catch (error: any) {
+        console.warn('⚠️ Groq failed in social posts, falling back to Gemini:', error.message);
+      }
+    }
+
+    // 2. Fallback to Gemini
+    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
-      const model = this.getModel(true, modelName);
+      const model = this.getGeminiModel(modelName);
       try {
+        console.log(`Trying Gemini (${modelName}) for social posts...`);
         const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        const text = result.response.text();
         const cleanJson = text.replace(/```json\n?|\n?```/g, '').trim();
         return JSON.parse(cleanJson);
       } catch (error: any) {
         lastError = error;
-        console.warn(`Social generation failed with ${modelName}: ${error.message}`);
       }
     }
+
     return { 
       twitter: "Could not generate twitter thread.", 
       linkedin: "Could not generate linkedin post." 
