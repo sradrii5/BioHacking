@@ -132,7 +132,8 @@ export default async function Home({ params, searchParams }: Props) {
           </section>
         )}
 
-        {articles && articles.length === 0 && (
+        {((cat !== 'Recomendaciones' && articles && articles.length === 0) || 
+          (cat === 'Recomendaciones' && (!products || products.length === 0) && (!articles || articles.length === 0))) && (
           <div className="py-20 text-center max-w-2xl mx-auto">
             <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-blue-500/20">
               <span className="text-4xl">🧪</span>
