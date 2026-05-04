@@ -82,11 +82,9 @@ export class AITransformerService {
           return JSON.parse(cleanJson);
         } catch (error: any) {
           lastError = error;
-          if (error.status === 429 && retries > 1) {
-            console.log(`Rate limit on ${modelName}. Waiting 125s...`);
-            await new Promise(resolve => setTimeout(resolve, 125000));
-            retries--;
-            continue;
+          if (error.status === 429) {
+            console.log(`Rate limit hit on ${modelName}. Relinquishing job to avoid timeout.`);
+            throw error; // Throw immediately, don't wait
           }
           console.warn(`Model ${modelName} failed: ${error.message}`);
           break; // Try next model
@@ -116,31 +114,26 @@ export class AITransformerService {
       - Total length: around 400-600 words.
     `;
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash-8b"];
+    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
-      let retries = 5;
       const model = this.getModel(false, modelName);
       
-      while (retries > 0) {
-        try {
-          console.log(`Trying model in generatePost: ${modelName}...`);
-          const result = await model.generateContent(prompt);
-          const response = await result.response;
-          const text = response.text();
-          return text.replace(/```html\n?|```\n?/g, '').trim();
-        } catch (error: any) {
-          lastError = error;
-          if (error.status === 429 && retries > 1) {
-            console.log(`Rate limit in generatePost on ${modelName}. Waiting 125s...`);
-            await new Promise(resolve => setTimeout(resolve, 125000));
-            retries--;
-            continue;
-          }
-          console.warn(`Model ${modelName} failed in generatePost: ${error.message}`);
-          break; // Try next model
+      try {
+        console.log(`Trying model in generatePost: ${modelName}...`);
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        return text.replace(/```html\n?|```\n?/g, '').trim();
+      } catch (error: any) {
+        lastError = error;
+        if (error.status === 429) {
+          console.log(`Rate limit in generatePost on ${modelName}. Relinquishing job.`);
+          throw error;
         }
+        console.warn(`Model ${modelName} failed in generatePost: ${error.message}`);
+        continue; // Try next model
       }
     }
     throw lastError || new Error("All models failed in generatePost");

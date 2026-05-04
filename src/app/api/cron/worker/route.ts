@@ -122,7 +122,21 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error(`❌ [WORKER] Job ${job.id} failed:`, error.message);
 
-    // Mark job as failed so it can be retried or inspected
+    // If it's a rate limit error, put it back to pending for next time
+    if (error.status === 429) {
+      await supabase
+        .from('ingestion_queue')
+        .update({
+          status: 'pending',
+          error_message: 'Rate limited by Google. Retrying later...',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', job.id);
+      
+      return NextResponse.json({ message: 'Rate limited, retrying later' }, { status: 429 });
+    }
+
+    // Mark job as failed for real errors (400, 500, etc)
     await supabase
       .from('ingestion_queue')
       .update({
