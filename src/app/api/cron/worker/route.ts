@@ -18,138 +18,144 @@ export async function GET(request: Request) {
   }
 
   const supabase = getSupabaseAdmin();
+  const startTime = Date.now();
+  const MAX_DURATION = 240000; // 240 seconds (leaving 60s buffer for Vercel's 300s limit)
+  let processedCount = 0;
+  let lastProcessedTitle = '';
+
+  console.log('🚀 [WORKER] Starting batch processing session...');
 
   // 0. CLEANUP: Reset any jobs that have been stuck in "processing" for more than 5 minutes
-  // This happens if a previous worker execution timed out or crashed
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
   await supabase
     .from('ingestion_queue')
     .update({ status: 'pending', error_message: 'Timed out or restarted' })
     .eq('status', 'processing')
-    .lt('created_at', fiveMinutesAgo); // Use created_at as a proxy for how long it's been active
+    .lt('created_at', fiveMinutesAgo);
 
-  // 1. Pick the oldest pending job (one at a time to avoid timeout)
-  const { data: job, error: fetchError } = await supabase
-    .from('ingestion_queue')
-    .select('*')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .single();
-
-  if (fetchError || !job) {
-    console.log('📭 [WORKER] No pending jobs in queue.');
-    return NextResponse.json({ message: 'No pending jobs.' });
-  }
-
-  console.log(`⚙️ [WORKER] Processing job ${job.id} (query: "${job.query}")`);
-
-  // 2. Mark as processing to prevent double-processing by concurrent cron calls
-  await supabase
-    .from('ingestion_queue')
-    .update({ status: 'processing' })
-    .eq('id', job.id);
-
-  try {
-    const pubmed = new PubMedService();
-    const transformer = new AITransformerService();
-
-    // 3. Fetch article details from PubMed
-    const studies = await pubmed.fetchStudyDetails(job.pubmed_ids);
-
-    if (!studies || studies.length === 0) {
-      throw new Error(`PubMed returned no details for IDs: ${job.pubmed_ids.join(', ')}`);
-    }
-
-    const study = studies[0];
-    console.log(`📄 [WORKER] Processing study: "${study.title}"`);
-
-    // 4. Save raw study
-    const { data: savedStudy, error: studyError } = await supabase
-      .from('studies')
-      .upsert({
-        title: study.title,
-        source_url: study.url,
-        publish_date: study.pubDate,
-        raw_summary: study.abstract,
-      }, { onConflict: 'source_url' })
-      .select()
+  // LOOP: Process items while we have time and there are pending items
+  while (Date.now() - startTime < MAX_DURATION) {
+    // 1. Pick the oldest pending job
+    const { data: job, error: fetchError } = await supabase
+      .from('ingestion_queue')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(1)
       .single();
 
-    if (studyError) throw studyError;
+    if (fetchError || !job) {
+      console.log(`📭 [WORKER] Queue empty. Total processed in this run: ${processedCount}`);
+      break;
+    }
 
-    // 5. Transform with AI (this is where the heavy lifting happens)
-    const transformed = await transformer.transformStudy(study.abstract, job.locale as any);
+    console.log(`⚙️ [WORKER] Processing job ${job.id} (query: "${job.query}")`);
 
-    // 6. Save article
-    const slug = transformed.metadata.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-
-    const { error: articleError } = await supabase
-      .from('articles')
-      .upsert({
-        study_id: savedStudy.id,
-        title: transformed.metadata.title,
-        content_html: transformed.content_html,
-        slug: `${slug}-${study.pmid}`,
-        tl_dr: transformed.metadata.tl_dr,
-        trust_score: transformed.metadata.trust_score,
-        status: 'published',
-        seo_metadata: {
-          locale: job.locale,
-          category: transformed.metadata.category,
-          social: transformed.social,
-        },
-      }, { onConflict: 'slug' });
-
-    if (articleError) throw articleError;
-
-    // 7. Mark job as done
+    // 2. Mark as processing
     await supabase
       .from('ingestion_queue')
-      .update({ status: 'done', processed_at: new Date().toISOString() })
+      .update({ status: 'processing', updated_at: new Date().toISOString() })
       .eq('id', job.id);
 
-    console.log(`✅ [WORKER] Job ${job.id} completed: "${transformed.metadata.title}"`);
-    return NextResponse.json({
-      success: true,
-      jobId: job.id,
-      article: transformed.metadata.title,
-    });
+    try {
+      const pubmed = new PubMedService();
+      const transformer = new AITransformerService();
 
-  } catch (error: any) {
-    console.error(`❌ [WORKER] Job ${job.id} failed:`, error.message);
+      // 3. Fetch article details from PubMed
+      const studies = await pubmed.fetchStudyDetails(job.pubmed_ids);
+      if (!studies || studies.length === 0) {
+        throw new Error(`PubMed returned no details for IDs: ${job.pubmed_ids.join(', ')}`);
+      }
 
-    // If it's a rate limit error, put it back to pending for next time
-    if (error.status === 429) {
+      const study = studies[0];
+      console.log(`📄 [WORKER] Processing study: "${study.title}"`);
+
+      // 4. Save raw study
+      const { data: savedStudy, error: studyError } = await supabase
+        .from('studies')
+        .upsert({
+          title: study.title,
+          source_url: study.url,
+          publish_date: study.pubDate,
+          raw_summary: study.abstract,
+        }, { onConflict: 'source_url' })
+        .select()
+        .single();
+
+      if (studyError) throw studyError;
+
+      // 5. Transform with AI (Groq first, then Gemini)
+      const transformed = await transformer.transformStudy(study.abstract, job.locale as any);
+
+      // 6. Save article
+      const slug = transformed.metadata.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      const { error: articleError } = await supabase
+        .from('articles')
+        .upsert({
+          study_id: savedStudy.id,
+          title: transformed.metadata.title,
+          content_html: transformed.content_html,
+          slug: `${slug}-${study.pmid}`,
+          tl_dr: transformed.metadata.tl_dr,
+          trust_score: transformed.metadata.trust_score,
+          status: 'published',
+          seo_metadata: {
+            locale: job.locale,
+            category: transformed.metadata.category,
+            social: transformed.social,
+          },
+        }, { onConflict: 'slug' });
+
+      if (articleError) throw articleError;
+
+      // 7. Mark job as done
+      await supabase
+        .from('ingestion_queue')
+        .update({ status: 'done', processed_at: new Date().toISOString() })
+        .eq('id', job.id);
+
+      console.log(`✅ [WORKER] Completed: "${transformed.metadata.title}"`);
+      processedCount++;
+      lastProcessedTitle = transformed.metadata.title;
+
+    } catch (error: any) {
+      console.error(`❌ [WORKER] Job ${job.id} failed:`, error.message);
+
+      if (error.status === 429) {
+        await supabase
+          .from('ingestion_queue')
+          .update({
+            status: 'pending',
+            error_message: 'Rate limited by AI engine. Retrying later...',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', job.id);
+        
+        console.log('🛑 [WORKER] Rate limit hit. Stopping this session to avoid errors.');
+        break; // Stop loop and return current progress
+      }
+
       await supabase
         .from('ingestion_queue')
         .update({
-          status: 'pending',
-          error_message: 'Rate limited by Google. Retrying later...',
-          updated_at: new Date().toISOString(),
+          status: 'failed',
+          error_message: error.message,
+          processed_at: new Date().toISOString(),
         })
         .eq('id', job.id);
       
-      return NextResponse.json({ message: 'Rate limited, retrying later' }, { status: 429 });
+      // Continue to next job even if one failed
     }
-
-    // Mark job as failed for real errors (400, 500, etc)
-    await supabase
-      .from('ingestion_queue')
-      .update({
-        status: 'failed',
-        error_message: error.message,
-        processed_at: new Date().toISOString(),
-      })
-      .eq('id', job.id);
-
-    return NextResponse.json({
-      success: false,
-      jobId: job.id,
-      error: error.message,
-    }, { status: 500 });
   }
+
+  return NextResponse.json({
+    success: true,
+    processed: processedCount,
+    lastArticle: lastProcessedTitle,
+    timeElapsed: `${(Date.now() - startTime) / 1000}s`
+  });
 }
