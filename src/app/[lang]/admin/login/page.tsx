@@ -26,25 +26,25 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ password }),
       });
 
-      const data = await res.json();
-
+      console.log('Response status:', res.status);
+      
       if (res.ok) {
-        // Redirect to where they came from, or default admin panel
         const from = searchParams.get('from');
         const dest = from || `/${lang}/admin`;
         
-        console.log('Login success, redirecting to:', dest);
+        alert('¡Login correcto! Redirigiendo a: ' + dest);
         router.push(dest);
         
-        // Force a hard refresh if push doesn't seem to work
         setTimeout(() => {
-          router.refresh();
-        }, 100);
+          window.location.href = dest; // Fuerza bruta si router.push falla
+        }, 500);
       } else {
+        const data = await res.json();
+        alert('Error del servidor (' + res.status + '): ' + (data.error || 'Desconocido'));
         setError(data.error || 'Contraseña incorrecta');
       }
-    } catch (err) {
-      console.error('Login error:', err);
+    } catch (err: any) {
+      alert('Error de conexión crítico: ' + err.message);
       setError('Error de conexión. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
