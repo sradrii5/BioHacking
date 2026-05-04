@@ -21,6 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     metadataBase: new URL('https://www.biohackerage.com'),
     alternates: {
       canonical: `/${lang}`,
+      languages: {
+        'es-ES': '/es',
+        'en-US': '/en',
+        'x-default': '/es',
+      },
     },
     verification: {
       google: '6NUlRe1_WR9euIXpytbvKZXQSGmq4c9L2usoMAQkmzU',
