@@ -51,10 +51,10 @@ export default async function Home({ params, searchParams }: Props) {
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
       {/* Premium Navigation Header */}
       <nav className="bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-          <Link href={`/${lang}`} className="text-xl md:text-2xl font-black tracking-tighter flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs">LB</div>
-            LONGEVITY<span className="text-blue-500">BIOHACKER</span>
+        <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
+          <Link href={`/${lang}`} className="text-lg md:text-2xl font-black tracking-tighter flex items-center gap-2">
+            <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-[10px]">LB</div>
+            <span className="hidden xs:inline">LONGEVITY</span><span className="text-blue-500">BIOHACKER</span>
           </Link>
           
           <div className="hidden lg:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400">
@@ -62,17 +62,18 @@ export default async function Home({ params, searchParams }: Props) {
             <Link href={`/${lang}?cat=Recomendaciones`} className={`hover:text-blue-400 transition-colors ${cat === 'Recomendaciones' ? 'text-blue-500' : ''}`}>{dict.nav.supplements}</Link>
             <Link href={`/${lang}?cat=Ciencia`} className={`hover:text-blue-400 transition-colors ${cat === 'Ciencia' ? 'text-blue-500' : ''}`}>{dict.nav.science}</Link>
           </div>
-
-          <div className="flex items-center gap-3 md:gap-6">
-            <div className="flex gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
-              <Link href="/es" className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'es' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>ES</Link>
-              <Link href="/en" className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${lang === 'en' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>EN</Link>
+c
+          <div className="flex items-center gap-2 md:gap-6">
+            <div className="flex gap-0.5 bg-zinc-900 p-1 rounded-xl border border-zinc-800 scale-90 md:scale-100">
+              <Link href="/es" className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all ${lang === 'es' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>ES</Link>
+              <Link href="/en" className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all ${lang === 'en' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>EN</Link>
             </div>
             <Link 
               href="#newsletter-section"
-              className="bg-white text-black px-5 md:px-8 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-white/5 active:scale-95"
+              className="bg-white text-black px-4 md:px-8 py-2 md:py-2.5 rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-white/5 active:scale-95 whitespace-nowrap"
             >
-              {dict.nav.newsletter}
+              <span className="md:hidden">JOIN</span>
+              <span className="hidden md:inline">{dict.nav.newsletter}</span>
             </Link>
           </div>
         </div>
@@ -152,22 +153,22 @@ export default async function Home({ params, searchParams }: Props) {
           </div>
         )}
         
-        {/* Featured Article (Hero) - Only show if not filtering or if it's the first one */}
+        {/* Featured Article (Hero) */}
         {featuredArticle && !cat && (
-          <section className="mb-20">
-            <Link href={`/${lang}/${featuredArticle.slug}`} className="group relative block overflow-hidden rounded-[3rem] bg-zinc-900 aspect-[21/9] shadow-2xl border border-zinc-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-900/40 to-transparent z-10"></div>
+          <section className="mb-12 md:mb-20">
+            <Link href={`/${lang}/${featuredArticle.slug}`} className="group relative block overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-zinc-900 aspect-[4/5] md:aspect-[21/9] shadow-2xl border border-zinc-800">
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 md:via-zinc-900/40 to-transparent z-10"></div>
               {/* Decorative element */}
               <div className="absolute inset-0 bg-blue-600 mix-blend-overlay opacity-10"></div>
               
-              <div className="absolute bottom-0 left-0 p-8 md:p-16 z-20 max-w-3xl">
-                <span className="inline-block px-4 py-1.5 bg-blue-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest mb-6 shadow-xl shadow-blue-900/40">
+              <div className="absolute bottom-0 left-0 p-6 md:p-16 z-20 max-w-3xl">
+                <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 bg-blue-600 text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6 shadow-xl shadow-blue-900/40">
                   {dict.home.featured} • {dict.common.trust_score}: {featuredArticle.trust_score}%
                 </span>
-                <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-6 group-hover:text-blue-400 transition-colors font-heading">
+                <h2 className="text-2xl md:text-5xl font-black text-white leading-tight mb-4 md:mb-6 group-hover:text-blue-400 transition-colors font-heading">
                   {featuredArticle.title}
                 </h2>
-                <p className="text-zinc-400 text-lg md:text-xl line-clamp-2 font-medium leading-relaxed italic">
+                <p className="text-zinc-400 text-sm md:text-xl line-clamp-3 md:line-clamp-2 font-medium leading-relaxed italic">
                   "{featuredArticle.tl_dr}"
                 </p>
               </div>
@@ -184,30 +185,30 @@ export default async function Home({ params, searchParams }: Props) {
                 <Link 
                   key={article.id} 
                   href={`/${lang}/${article.slug}`}
-                  className="group bg-zinc-900 rounded-[2.5rem] overflow-hidden border border-zinc-800 shadow-sm hover:shadow-2xl hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                  className="group bg-zinc-900 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-zinc-800 shadow-sm hover:shadow-2xl hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
-                  <div className="p-8 flex-1">
-                    <div className="flex items-center justify-between mb-6">
-                      <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border ${
+                  <div className="p-6 md:p-8 flex-1">
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                      <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-full border ${
                         article.trust_score > 90 
                           ? 'bg-emerald-950/30 text-emerald-400 border-emerald-500/20' 
                           : 'bg-blue-950/30 text-blue-400 border-blue-500/20'
                       }`}>
                         {dict.common.trust_score}: {article.trust_score}%
                       </span>
-                      <span className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">
+                      <span className="text-zinc-500 text-[8px] md:text-[9px] font-black uppercase tracking-widest">
                         {new Date(article.created_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
                       </span>
                     </div>
-                    <h4 className="text-xl font-black text-white leading-tight mb-4 group-hover:text-blue-400 transition-colors font-heading">
+                    <h4 className="text-lg md:text-xl font-black text-white leading-tight mb-4 group-hover:text-blue-400 transition-colors font-heading">
                       {article.title}
                     </h4>
-                    <p className="text-zinc-500 text-sm line-clamp-3 leading-relaxed mb-6 font-medium">
+                    <p className="text-zinc-500 text-xs md:text-sm line-clamp-3 leading-relaxed mb-4 md:mb-6 font-medium">
                       {article.tl_dr}
                     </p>
                   </div>
-                  <div className="px-8 pb-8">
-                    <div className="flex items-center text-blue-500 text-[10px] font-black uppercase tracking-widest group-hover:gap-2 transition-all">
+                  <div className="px-6 pb-6 md:px-8 md:pb-8">
+                    <div className="flex items-center text-blue-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest group-hover:gap-2 transition-all">
                       {dict.home.read_more} <span>→</span>
                     </div>
                   </div>
