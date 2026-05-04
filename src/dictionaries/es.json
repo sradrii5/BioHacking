@@ -32,5 +32,17 @@
     "verified_source": "Fuente Verificada",
     "trust_score": "Nivel de Confianza",
     "original_study": "Ver Estudio Original"
+  },
+  "footer": {
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "disclaimer": "Aviso Legal",
+    "rights": "Todos los derechos reservados."
+  },
+  "legal": {
+    "privacy_title": "Política de Privacidad",
+    "terms_title": "Términos de Servicio",
+    "disclaimer_title": "Aviso Legal Médico",
+    "back_to_home": "Volver a la Home"
   }
 }

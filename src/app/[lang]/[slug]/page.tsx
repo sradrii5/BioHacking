@@ -5,6 +5,8 @@ import { ScientificSourceCard } from '@/components/ScientificSourceCard';
 import { NewsletterForm } from '@/components/NewsletterForm';
 import { AdSenseUnit } from '@/components/AdSenseUnit';
 import { AITransformerService } from '@/lib/services/ai-transformer';
+import { Footer } from '@/components/Footer';
+
 
 import { getDictionary } from '@/lib/dictionaries';
 
@@ -213,8 +215,7 @@ export default async function ArticlePage({ params }: Props) {
                 </section>
               )}
 
-              {/* Newsletter Premium Card */}
-              <NewsletterForm />
+              {/* Newsletter Premium Card Removed to avoid duplication */}
 
               {/* AdSense Sidebar Placeholder */}
               <AdSenseUnit 
@@ -225,6 +226,7 @@ export default async function ArticlePage({ params }: Props) {
           </aside>
         </div>
       </main>
+      <Footer lang={lang} dict={dict} />
     </article>
   );
 }

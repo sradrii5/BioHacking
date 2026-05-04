@@ -4,6 +4,8 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { getDictionary } from '@/lib/dictionaries';
 import { NewsletterForm } from '@/components/NewsletterForm';
 import { AdSenseUnit } from '@/components/AdSenseUnit';
+import { Footer } from '@/components/Footer';
+
 
 interface Props {
   params: Promise<{ lang: 'en' | 'es' }>;
@@ -254,18 +256,7 @@ export default async function Home({ params, searchParams }: Props) {
       </main>
 
       {/* Premium Footer */}
-      <footer className="bg-zinc-950 border-t border-zinc-900 py-20">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-zinc-600 text-sm font-black uppercase tracking-[0.4em] mb-6 font-heading">
-            LONGEVITY<span className="text-blue-500">BIOHACKER</span>
-          </p>
-          <p className="text-zinc-700 text-[9px] max-w-md mx-auto leading-relaxed uppercase tracking-[0.2em] font-black">
-            {lang === 'es' ? 'La plataforma líder en análisis de ciencia aplicada a la longevidad humana.' : 'The leading platform for analysis of science applied to human longevity.'}
-            <br />
-            <span className="mt-4 block opacity-50">© 2026 {lang === 'es' ? 'Todos los derechos reservados.' : 'All rights reserved.'}</span>
-          </p>
-        </div>
-      </footer>
+      <Footer lang={lang} dict={dict} />
     </div>
   );
 }

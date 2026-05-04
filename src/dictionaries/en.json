@@ -32,5 +32,17 @@
     "verified_source": "Verified Source",
     "trust_score": "Trust Score",
     "original_study": "View Original Study"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "disclaimer": "Medical Disclaimer",
+    "rights": "All rights reserved."
+  },
+  "legal": {
+    "privacy_title": "Privacy Policy",
+    "terms_title": "Terms of Service",
+    "disclaimer_title": "Medical Disclaimer",
+    "back_to_home": "Back to Home"
   }
 }
