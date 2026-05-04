@@ -16,6 +16,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Biohacker Age | Protocolos de Longevidad y Biohacking",
   description: "Descubre los últimos avances científicos en longevidad, optimización biológica y protocolos de biohacking para vivir más y mejor.",
+  verification: {
+    google: '6NUlRe1_WR9euIXpytbvKZXQSGmq4c9L2usoMAQkmzU',
+  },
 };
 
 export default async function RootLayout({
