@@ -19,6 +19,15 @@ export async function GET(request: Request) {
 
   const supabase = getSupabaseAdmin();
 
+  // 0. CLEANUP: Reset any jobs that have been stuck in "processing" for more than 5 minutes
+  // This happens if a previous worker execution timed out or crashed
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  await supabase
+    .from('ingestion_queue')
+    .update({ status: 'pending', error_message: 'Timed out or restarted' })
+    .eq('status', 'processing')
+    .lt('created_at', fiveMinutesAgo); // Use created_at as a proxy for how long it's been active
+
   // 1. Pick the oldest pending job (one at a time to avoid timeout)
   const { data: job, error: fetchError } = await supabase
     .from('ingestion_queue')
