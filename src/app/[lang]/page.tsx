@@ -133,23 +133,27 @@ export default async function Home({ params, searchParams }: Props) {
         )}
 
         {articles && articles.length === 0 && (
-          <div className="py-20 text-center">
-            <div className="text-6xl mb-6">🔍</div>
-            <h3 className="text-2xl font-black text-zinc-100 mb-2">
-              {cat === 'Recomendaciones' && products && products.length > 0
-                ? (lang === 'es' ? 'Próximamente: Ciencia Aplicada' : 'Coming Soon: Applied Science')
-                : (lang === 'es' ? 'No hay artículos en esta categoría aún' : 'No articles in this category yet')}
+          <div className="py-20 text-center max-w-2xl mx-auto">
+            <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-blue-500/20">
+              <span className="text-4xl">🧪</span>
+            </div>
+            <h3 className="text-3xl font-black text-zinc-100 mb-4 italic uppercase tracking-tighter">
+              {cat === 'Protocolos' 
+                ? (lang === 'es' ? 'Forjando Protocolos de Vanguardia' : 'Forging Cutting-Edge Protocols')
+                : (lang === 'es' ? 'Próximamente: Ciencia Aplicada' : 'Coming Soon: Applied Science')}
             </h3>
-            <p className="text-zinc-500 font-medium max-w-md mx-auto">
-              {cat === 'Recomendaciones' && products && products.length > 0
-                ? (lang === 'es' ? 'Estamos analizando los últimos estudios sobre estas herramientas y compuestos. ¡Vuelve pronto!' : 'We are analyzing the latest studies on these tools and compounds. Check back soon!')
-                : (lang === 'es' ? 'Estamos procesando nuevos estudios. Vuelve pronto.' : 'We are processing new studies. Check back soon.')}
+            <p className="text-zinc-500 font-bold leading-relaxed mb-8">
+              {cat === 'Protocolos'
+                ? (lang === 'es' 
+                    ? 'Estamos transformando los últimos descubrimientos científicos en guías paso a paso. Pronto encontrarás aquí rutinas exactas de suplementación, sueño y rendimiento biológico.' 
+                    : 'We are transforming the latest scientific discoveries into step-by-step guides. Soon you will find exact supplementation, sleep, and performance routines here.')
+                : (lang === 'es' 
+                    ? 'Estamos procesando nuevos estudios. Vuelve pronto.' 
+                    : 'We are processing new studies. Check back soon.')}
             </p>
-            {!cat && (
-              <Link href={`/${lang}`} className="inline-block mt-8 text-blue-600 font-black uppercase tracking-widest text-xs border-b-2 border-blue-600 pb-1">
-                {lang === 'es' ? 'Volver a la Home' : 'Back to Home'}
-              </Link>
-            )}
+            <Link href={`/${lang}`} className="inline-block bg-zinc-900 border border-zinc-800 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all">
+              {lang === 'es' ? 'Explorar Ciencia Reciente' : 'Explore Recent Science'}
+            </Link>
           </div>
         )}
         
@@ -197,9 +201,14 @@ export default async function Home({ params, searchParams }: Props) {
                       }`}>
                         {dict.common.trust_score}: {article.trust_score}%
                       </span>
-                      <span className="text-zinc-500 text-[8px] md:text-[9px] font-black uppercase tracking-widest">
-                        {new Date(article.created_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-zinc-500 text-[8px] md:text-[9px] font-black uppercase tracking-widest">
+                          {new Date(article.created_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
+                        </span>
+                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${article.seo_metadata?.category === 'Protocolos' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+                          {article.seo_metadata?.category || 'Ciencia'}
+                        </span>
+                      </div>
                     </div>
                     <h4 className="text-lg md:text-xl font-black text-white leading-tight mb-4 group-hover:text-blue-400 transition-colors font-heading">
                       {article.title}

@@ -61,7 +61,7 @@ export class AITransformerService {
         "key_benefits": ["List of 3-5 specific health benefits found in the study"],
         "trust_score": number (0-100),
         "product_keywords": ["Identify ANY biohacking products, gadgets, or supplements mentioned"],
-        "category": "Select one: 'Ciencia', 'Recomendaciones' or 'Protocolos'"
+        "category": "Select 'Protocolos' IF the study provides actionable dosages, timing, or specific steps to follow. Select 'Recomendaciones' for general lifestyle advice. Select 'Ciencia' for pure research findings."
       }
 
       Abstract: ${abstract}
@@ -110,9 +110,22 @@ export class AITransformerService {
     const prompt = `
       Write a compelling, science-based blog post in ${locale === 'es' ? 'Spanish' : 'English'} for a longevity/biohacking audience.
       Use HTML tags (h2, p, strong, ul, li). Authoritative yet accessible tone.
-      Title: ${metadata.title}
-      Key Benefits: ${metadata.key_benefits.join(', ')}
-      Trust Score: ${metadata.trust_score}%
+      
+      TITLE: ${metadata.title}
+      CATEGORY: ${metadata.category}
+      
+      IF CATEGORY IS 'Protocolos', USE THIS STRUCTURE:
+      1. [h2] Objetivo del Protocolo (What are we optimizing?)
+      2. [h2] Fundamento Científico (Briefly explain WHY it works based on the study)
+      3. [h2] Instrucciones del Protocolo (Create a step-by-step guide: Dosages, Timing, Frequency)
+      4. [h2] Sinergias y Optimizaciones (What to combine it with)
+      5. [h2] Advertencias y Seguridad (Based on study contraindications)
+
+      ELSE (Ciencia/Recomendaciones), USE THIS STRUCTURE:
+      1. [h2] El Descubrimiento
+      2. [h2] Beneficios Clave (Use lists)
+      3. [h2] ¿Cómo aplicarlo?
+      4. [h2] Conclusión
     `;
 
     // 1. Try Groq
