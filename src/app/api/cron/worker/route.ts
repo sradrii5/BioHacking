@@ -33,6 +33,14 @@ export async function GET(request: Request) {
     .eq('status', 'processing')
     .lt('created_at', fiveMinutesAgo);
 
+  // 0b. CLEANUP: Delete completed jobs older than 60 minutes to keep the queue clean
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  await supabase
+    .from('ingestion_queue')
+    .delete()
+    .eq('status', 'done')
+    .lt('processed_at', oneHourAgo);
+
   // LOOP: Process items while we have time and there are pending items
   while (Date.now() - startTime < MAX_DURATION) {
     // 1. Pick the oldest pending job
