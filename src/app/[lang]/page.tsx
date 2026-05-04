@@ -62,7 +62,7 @@ export default async function Home({ params, searchParams }: Props) {
             <Link href={`/${lang}?cat=Recomendaciones`} className={`hover:text-blue-400 transition-colors ${cat === 'Recomendaciones' ? 'text-blue-500' : ''}`}>{dict.nav.supplements}</Link>
             <Link href={`/${lang}?cat=Ciencia`} className={`hover:text-blue-400 transition-colors ${cat === 'Ciencia' ? 'text-blue-500' : ''}`}>{dict.nav.science}</Link>
           </div>
-c
+
           <div className="flex items-center gap-2 md:gap-6">
             <div className="flex gap-0.5 bg-zinc-900 p-1 rounded-xl border border-zinc-800 scale-90 md:scale-100">
               <Link href="/es" className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all ${lang === 'es' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>ES</Link>
@@ -156,10 +156,11 @@ c
         {/* Featured Article (Hero) */}
         {featuredArticle && !cat && (
           <section className="mb-12 md:mb-20">
-            <Link href={`/${lang}/${featuredArticle.slug}`} className="group relative block overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-zinc-900 aspect-[4/5] md:aspect-[21/9] shadow-2xl border border-zinc-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 md:via-zinc-900/40 to-transparent z-10"></div>
-              {/* Decorative element */}
-              <div className="absolute inset-0 bg-blue-600 mix-blend-overlay opacity-10"></div>
+            <Link href={`/${lang}/${featuredArticle.slug}`} className="group relative block overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-zinc-900 aspect-square md:aspect-[21/9] shadow-2xl border border-zinc-800">
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 md:via-zinc-900/40 to-transparent z-10"></div>
+              {/* Decorative background element */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full -z-0"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/10 blur-[80px] rounded-full -z-0"></div>
               
               <div className="absolute bottom-0 left-0 p-6 md:p-16 z-20 max-w-3xl">
                 <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 bg-blue-600 text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6 shadow-xl shadow-blue-900/40">
