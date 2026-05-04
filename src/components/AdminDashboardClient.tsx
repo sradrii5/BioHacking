@@ -170,6 +170,51 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
     }
   };
 
+  const [activeTab, setActiveTab] = useState<'articles' | 'products'>('articles');
+  const [productsList, setProductsList] = useState<any[]>(products || []);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    affiliate_link: '',
+    price_point: 'medium',
+    keywords: '',
+    image_url: '',
+    lang: lang || 'es'
+  });
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const keywordsArray = newProduct.keywords.split(',').map(k => k.trim()).filter(k => k);
+    
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newProduct, keywords: keywordsArray })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProductsList([data.data, ...productsList]);
+        setNewProduct({ name: '', description: '', affiliate_link: '', price_point: 'medium', keywords: '', image_url: '', lang: lang || 'es' });
+        alert('Producto añadido con éxito! 🧬');
+      }
+    } catch (err) {
+      alert('Error al añadir producto');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm('¿Seguro que quieres borrar este producto?')) return;
+    const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      setProductsList(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
       {/* Sidebar: Ingestion & Control */}
@@ -209,6 +254,57 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
             >
               {loading ? 'Cargando...' : '📥 Iniciar Ingesta'}
             </button>
+          </form>
+        </section>
+
+        {/* Product Quick-Add */}
+        <section className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 shadow-2xl">
+          <h2 className="text-xl font-black mb-6 flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+            Añadir Producto
+          </h2>
+          <form onSubmit={handleAddProduct} className="space-y-4">
+            <input 
+              type="text"
+              placeholder="Nombre del suplemento/gadget"
+              value={newProduct.name}
+              onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white"
+              required
+            />
+            <input 
+              type="url"
+              placeholder="Link de afiliado"
+              value={newProduct.affiliate_link}
+              onChange={e => setNewProduct({...newProduct, affiliate_link: e.target.value})}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white"
+              required
+            />
+            <input 
+              type="text"
+              placeholder="Palabras clave (sep. por comas)"
+              value={newProduct.keywords}
+              onChange={e => setNewProduct({...newProduct, keywords: e.target.value})}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-[10px] text-zinc-400"
+            />
+            <div className="flex gap-2">
+              <select 
+                value={newProduct.price_point}
+                onChange={e => setNewProduct({...newProduct, price_point: e.target.value})}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white"
+              >
+                <option value="low">$ Económico</option>
+                <option value="medium">$$ Medio</option>
+                <option value="high">$$$ Premium</option>
+              </select>
+              <button 
+                type="submit"
+                disabled={loading}
+                className="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+              >
+                +
+              </button>
+            </div>
           </form>
         </section>
 
@@ -264,117 +360,161 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
         </section>
       </div>
 
-      {/* CMS: Article Management */}
+      {/* Main Content Area */}
       <div className="lg:col-span-8 space-y-8">
-        <section className="bg-slate-900 p-10 rounded-[2.5rem] border border-slate-800">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Gestor de Contenidos</h2>
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Buscar artículos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-full px-6 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
-              />
-              <span className="absolute right-4 top-3 opacity-30">🔍</span>
-            </div>
-          </div>
+        <div className="flex items-center gap-4 bg-slate-900 p-2 rounded-2xl border border-slate-800 w-fit">
+          <button 
+            onClick={() => setActiveTab('articles')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'articles' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+          >
+            Artículos
+          </button>
+          <button 
+            onClick={() => setActiveTab('products')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'products' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+          >
+            Recomendaciones
+          </button>
+        </div>
 
-          <div className="space-y-6">
-            {filteredArticles.length === 0 ? (
-              <p className="text-slate-600 text-center py-20 italic font-medium">No se han encontrado artículos que coincidan con la búsqueda.</p>
-            ) : (
-              filteredArticles.map((article: any) => (
-                <div key={article.id} className="group animate-in fade-in duration-500">
-                  <div className="flex items-center justify-between p-6 bg-slate-950 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-blue-900/40 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">
-                          {article.seo_metadata?.locale || 'es'}
-                        </span>
-                        <span className="text-slate-600 text-[10px] font-bold">
-                          {new Date(article.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <h3 className="font-bold text-lg truncate pr-4">{article.title}</h3>
-                      
-                      <div className="flex gap-4 items-center mt-4">
-                        <button 
-                          onClick={() => setSelectedSocial(selectedSocial === article.id ? null : article.id)}
-                          className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-400"
-                        >
-                          {selectedSocial === article.id ? '✕ Ocultar' : '📱 Social Pack'}
-                        </button>
+        {activeTab === 'articles' ? (
+          <section className="bg-slate-900 p-10 rounded-[2.5rem] border border-slate-800">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+              <h2 className="text-2xl font-black italic uppercase tracking-tighter">Gestor de Contenidos</h2>
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Buscar artículos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-full px-6 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
+                />
+                <span className="absolute right-4 top-3 opacity-30">🔍</span>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {filteredArticles.length === 0 ? (
+                <p className="text-slate-600 text-center py-20 italic font-medium">No se han encontrado artículos que coincidan con la búsqueda.</p>
+              ) : (
+                filteredArticles.map((article: any) => (
+                  <div key={article.id} className="group animate-in fade-in duration-500">
+                    <div className="flex items-center justify-between p-6 bg-slate-950 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-[9px] font-black uppercase tracking-widest bg-blue-900/40 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">
+                            {article.seo_metadata?.locale || 'es'}
+                          </span>
+                          <span className="text-slate-600 text-[10px] font-bold">
+                            {new Date(article.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-lg truncate pr-4">{article.title}</h3>
                         
-                        <button 
-                          onClick={() => handleDeleteArticle(article.id)}
-                          disabled={isDeleting === article.id}
-                          className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-400 disabled:opacity-30"
-                        >
-                          {isDeleting === article.id ? 'Borrando...' : '🗑️ Eliminar'}
-                        </button>
+                        <div className="flex gap-4 items-center mt-4">
+                          <button 
+                            onClick={() => setSelectedSocial(selectedSocial === article.id ? null : article.id)}
+                            className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-400"
+                          >
+                            {selectedSocial === article.id ? '✕ Ocultar' : '📱 Social Pack'}
+                          </button>
+                          
+                          <button 
+                            onClick={() => handleDeleteArticle(article.id)}
+                            disabled={isDeleting === article.id}
+                            className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-400 disabled:opacity-30"
+                          >
+                            {isDeleting === article.id ? 'Borrando...' : '🗑️ Eliminar'}
+                          </button>
 
-                        <Link 
-                          href={`/${lang}/admin/edit/${article.id}`}
-                          className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400"
-                        >
-                          ✏️ Editar
-                        </Link>
+                          <Link 
+                            href={`/${lang}/admin/edit/${article.id}`}
+                            className="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400"
+                          >
+                            ✏️ Editar
+                          </Link>
 
-                        <a 
-                          href={`/${article.seo_metadata?.locale || 'es'}/${article.slug}`}
-                          target="_blank"
-                          className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white"
-                        >
-                          👁️ Ver Web
-                        </a>
+                          <a 
+                            href={`/${article.seo_metadata?.locale || 'es'}/${article.slug}`}
+                            target="_blank"
+                            className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white"
+                          >
+                            👁️ Ver Web
+                          </a>
+                        </div>
+                      </div>
+                      <div className="text-right ml-4 shrink-0">
+                        <div className={`font-black text-xl ${article.trust_score > 80 ? 'text-emerald-500' : 'text-blue-500'}`}>
+                          {article.trust_score}%
+                        </div>
+                        <div className="text-[9px] uppercase font-bold text-slate-600 tracking-tighter">Trust Score</div>
                       </div>
                     </div>
-                    <div className="text-right ml-4 shrink-0">
-                      <div className={`font-black text-xl ${article.trust_score > 80 ? 'text-emerald-500' : 'text-blue-500'}`}>
-                        {article.trust_score}%
+
+                    {/* Social Pack Detail */}
+                    {selectedSocial === article.id && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 mt-2 animate-in slide-in-from-top-2 duration-300">
+                        <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="text-[10px] font-black uppercase text-blue-400">Twitter Thread</span>
+                            <button onClick={() => copyToClipboard(article.seo_metadata?.social?.twitter)} className="text-[9px] bg-blue-600 px-3 py-1 rounded-full font-bold">Copiar</button>
+                          </div>
+                          <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.twitter || 'N/A'}</p>
+                        </div>
+                        <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
+                          <div className="flex justify-between items-center mb-4">
+                            <span className="text-[10px] font-black uppercase text-emerald-400">LinkedIn Post</span>
+                            <button onClick={() => copyToClipboard(article.seo_metadata?.social?.linkedin)} className="text-[9px] bg-emerald-600 px-3 py-1 rounded-full font-bold">Copiar</button>
+                          </div>
+                          <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.linkedin || 'N/A'}</p>
+                        </div>
                       </div>
-                      <div className="text-[9px] uppercase font-bold text-slate-600 tracking-tighter">Trust Score</div>
-                    </div>
+                    )}
                   </div>
-
-                  {/* Social Pack Detail */}
-                  {selectedSocial === article.id && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 mt-2 animate-in slide-in-from-top-2 duration-300">
-                      <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="text-[10px] font-black uppercase text-blue-400">Twitter Thread</span>
-                          <button onClick={() => copyToClipboard(article.seo_metadata?.social?.twitter)} className="text-[9px] bg-blue-600 px-3 py-1 rounded-full font-bold">Copiar</button>
-                        </div>
-                        <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.twitter || 'N/A'}</p>
-                      </div>
-                      <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="text-[10px] font-black uppercase text-emerald-400">LinkedIn Post</span>
-                          <button onClick={() => copyToClipboard(article.seo_metadata?.social?.linkedin)} className="text-[9px] bg-emerald-600 px-3 py-1 rounded-full font-bold">Copiar</button>
-                        </div>
-                        <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.linkedin || 'N/A'}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-
-          {hasMore && (
-            <div className="mt-12 text-center">
-              <button 
-                onClick={loadMoreArticles}
-                disabled={loadingMore}
-                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50"
-              >
-                {loadingMore ? 'Cargando...' : '↓ Cargar más artículos'}
-              </button>
+                ))
+              )}
             </div>
-          )}
-        </section>
+
+            {hasMore && (
+              <div className="mt-12 text-center">
+                <button 
+                  onClick={loadMoreArticles}
+                  disabled={loadingMore}
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50"
+                >
+                  {loadingMore ? 'Cargando...' : '↓ Cargar más artículos'}
+                </button>
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="bg-slate-900 p-10 rounded-[2.5rem] border border-slate-800">
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8">Gestor de Recomendaciones</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {productsList.map((product: any) => (
+                <div key={product.id} className="bg-slate-950 p-6 rounded-3xl border border-slate-800 relative group">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-bold text-white">{product.name}</h3>
+                    <button 
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mb-4 line-clamp-2">{product.description || 'Sin descripción'}</p>
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{product.price_point}</span>
+                    <a href={product.affiliate_link} target="_blank" className="text-[10px] text-blue-500 font-bold hover:underline">Link Afiliado ↗</a>
+                  </div>
+                </div>
+              ))}
+              {productsList.length === 0 && (
+                <p className="col-span-2 text-center py-20 text-slate-600 italic">No hay productos recomendados todavía.</p>
+              )}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
