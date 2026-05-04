@@ -139,10 +139,25 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
 
         {/* Queue Monitor */}
         <section className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 shadow-2xl">
-          <h2 className="text-xl font-black mb-2 flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-            Cola de Procesamiento
-          </h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-black flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+              Cola de Procesamiento
+            </h2>
+            <button 
+              onClick={async () => {
+                const res = await fetch('/api/cron/worker', {
+                  headers: { 'Authorization': `Bearer biohacker_secret_2026` }
+                });
+                const data = await res.json();
+                alert(data.message || (data.success ? 'Procesado con éxito' : 'Error en el worker'));
+                fetchQueue();
+              }}
+              className="text-[9px] font-black uppercase tracking-widest bg-emerald-600/20 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30 hover:bg-emerald-600/30 transition-all"
+            >
+              ⚡ Procesar Ahora
+            </button>
+          </div>
           <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-6">Actualización automática cada 10s</p>
 
           {queueJobs.length === 0 ? (
