@@ -156,13 +156,18 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
   const handleClearQueue = async () => {
     if (!confirm('¿Quieres limpiar el historial de la cola (Completados y Fallidos)?')) return;
     
-    const { error } = await supabase
-      .from('ingestion_queue')
-      .delete()
-      .in('status', ['done', 'failed']);
-    
-    if (error) alert('Error: ' + error.message);
-    else fetchQueue();
+    try {
+      const res = await fetch('/api/admin/queue/clear', { method: 'DELETE' });
+      const data = await res.json();
+      
+      if (data.success) {
+        fetchQueue();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (err) {
+      alert('Error al conectar con la API de limpieza');
+    }
   };
 
   return (
