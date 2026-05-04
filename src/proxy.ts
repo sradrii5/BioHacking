@@ -40,8 +40,8 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals, static files, and cron routes
-    '/((?!_next|api/cron|favicon.ico|.*\\..*).*)',
+    // Skip Next.js internals, static files, and ALL api routes
+    '/((?!_next|api|favicon.ico|.*\\..*).*)',
   ],
 };
 
