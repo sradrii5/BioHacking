@@ -60,7 +60,7 @@ Your task:
    - content_en: Full article in English (Markdown format). Minimum 400 words.
    - category: One of: "Protocolos", "Ciencia", "Recomendaciones"
    - trustScore: A number from 0 to 100 based on scientific evidence (PubMed = higher, News = medium).
-   - slug: A URL-friendly slug based on the English title (lowercase, hyphens only).
+   - slug: A short, SEO-friendly URL slug (3-5 main keywords only, lowercase, hyphens). MAX 60 characters.
 
 STRICT JSON ONLY. NO MARKDOWN WRAPPERS. NO BACKTICKS.
             `.trim(),
@@ -80,7 +80,7 @@ STRICT JSON ONLY. NO MARKDOWN WRAPPERS. NO BACKTICKS.
         content: { es: data.content_es, en: data.content_en },
         category: data.category,
         trustScore: data.trustScore,
-        slug: data.slug,
+        slug: data.slug.substring(0, 60).replace(/-$/, ''), // Safety truncation
         sourceUrl: raw.link,
       };
     } catch (error: any) {
