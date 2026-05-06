@@ -24,11 +24,10 @@ export async function GET(request: Request) {
 
     console.log(`📡 [CRON] Found ${allItems.length} potential articles.`);
 
-    // 2. Process and publish
+    // 2. Process and publish (Limited to 1 article per run for consistency and safety)
     for (const item of allItems) {
       const alreadyExists = await isAlreadyPublished(item.link, item.title);
       if (alreadyExists) {
-        console.log(`⏭️ [CRON] Skipping (already in DB): ${item.title}`);
         results.skipped++;
         continue;
       }
@@ -38,12 +37,13 @@ export async function GET(request: Request) {
         await publishArticle(processed);
         results.processed++;
         results.articles.push(processed.slug);
+        
+        // We only want 1 fresh article per day
+        console.log(`🎯 [CRON] Successfully published daily article: ${processed.slug}`);
+        break; 
       } else {
         results.failed++;
       }
-
-      // Delay between articles to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 5000));
     }
 
     console.log('✅ [CRON] Bot finished.', results);

@@ -21,27 +21,35 @@ export async function fetchScienceDaily(): Promise<RawArticle[]> {
   const feeds = [
     'https://longevity.technology/feed',
     'https://www.sciencedaily.com/rss/living_well/healthy_aging.xml',
-    'https://www.news-medical.net/tag/feed/Longevity.aspx'
+    'https://www.news-medical.net/tag/feed/Longevity.aspx',
+    'https://www.medicalnewstoday.com/rss/gerontology',
+    'https://www.nature.com/nature/aging.rss',
+    'https://scitechdaily.com/category/health/feed/'
   ];
+
+  let allArticles: RawArticle[] = [];
 
   for (const url of feeds) {
     try {
       console.log(`📡 Trying RSS feed: ${url}`);
       const feed = await parser.parseURL(url);
       if (feed.items.length > 0) {
-        return feed.items.slice(0, 5).map(item => ({
+        const mapped = feed.items.slice(0, 3).map(item => ({
           title: item.title || '',
           link: item.link || '',
           contentSnippet: item.contentSnippet,
           pubDate: item.pubDate,
-          source: 'News'
+          source: 'News' as const
         }));
+        allArticles = [...allArticles, ...mapped];
       }
     } catch (error) {
       console.warn(`⚠️ Failed to fetch RSS from ${url}:`, (error as any).message);
     }
   }
-  return [];
+  
+  // Return a random selection or the most recent ones
+  return allArticles.sort(() => Math.random() - 0.5).slice(0, 10);
 }
 
 /**
