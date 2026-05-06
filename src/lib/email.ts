@@ -1,0 +1,38 @@
+import { Resend } from 'resend';
+import DailyDigestEmail from '@/emails/DailyDigest';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendDailyDigest({
+  subscribers,
+  article,
+}: {
+  subscribers: any[];
+  article: { title: string; tldr: string; slug: string; lang: string };
+}) {
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ Missing RESEND_API_KEY');
+    return;
+  }
+
+  console.log(`✉️ Sending newsletter to ${subscribers.length} subscribers...`);
+
+  // We could use batch sending for large numbers, but for now individual or small batches is fine
+  for (const subscriber of subscribers) {
+    try {
+      await resend.emails.send({
+        from: 'Biohacker Age <newsletter@biohackerage.com>',
+        to: subscriber.email,
+        subject: article.lang === 'es' ? `🧬 Nueva Ciencia: ${article.title}` : `🧬 New Science: ${article.title}`,
+        react: DailyDigestEmail({
+          title: article.title,
+          tldr: article.tldr,
+          slug: article.slug,
+          lang: article.lang,
+        }),
+      });
+    } catch (error) {
+      console.error(`❌ Failed to send email to ${subscriber.email}:`, error);
+    }
+  }
+}

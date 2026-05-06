@@ -2,9 +2,9 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getDictionary } from '@/lib/dictionaries';
-import { NewsletterForm } from '@/components/NewsletterForm';
+import NewsletterForm from '@/components/NewsletterForm';
 import { AdSenseUnit } from '@/components/AdSenseUnit';
-import { Footer } from '@/components/Footer';
+import Footer from '@/components/Footer';
 
 
 interface Props {
@@ -32,7 +32,7 @@ export default async function Home({ params, searchParams }: Props) {
   const { data: articles, error } = await query.order('created_at', { ascending: false });
 
   // 2. Fetch products if category is Recomendaciones
-  const { data: products } = cat === 'Recomendaciones' 
+  const { data: products } = cat === 'Recomendaciones'
     ? await supabase.from('products').select('*').eq('lang', lang).limit(24)
     : { data: null };
 
@@ -56,7 +56,7 @@ export default async function Home({ params, searchParams }: Props) {
             <img src="/favicon.ico" alt="Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
             <span className="hidden xs:inline">LONGEVITY</span><span className="text-blue-500">BIOHACKER</span>
           </Link>
-          
+
           <div className="hidden lg:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400">
             <Link href={`/${lang}?cat=Protocolos`} className={`hover:text-blue-400 transition-colors ${cat === 'Protocolos' ? 'text-blue-500' : ''}`}>{dict.nav.protocols}</Link>
             <Link href={`/${lang}?cat=Recomendaciones`} className={`hover:text-blue-400 transition-colors ${cat === 'Recomendaciones' ? 'text-blue-500' : ''}`}>{dict.nav.supplements}</Link>
@@ -68,7 +68,7 @@ export default async function Home({ params, searchParams }: Props) {
               <Link href="/es" className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all ${lang === 'es' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>ES</Link>
               <Link href="/en" className={`px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-[9px] md:text-[10px] font-black transition-all ${lang === 'en' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-500 hover:text-zinc-300'}`}>EN</Link>
             </div>
-            <Link 
+            <Link
               href="#newsletter-section"
               className="bg-white text-black px-4 md:px-8 py-2 md:py-2.5 rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-white/5 active:scale-95 whitespace-nowrap"
             >
@@ -81,7 +81,7 @@ export default async function Home({ params, searchParams }: Props) {
 
       {/* Main Layout */}
       <main className="container mx-auto px-4 py-8 md:py-16 max-w-7xl">
-        
+
         {cat && (
           <div className="mb-16 border-l-4 border-blue-600 pl-8 py-2">
             <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white font-heading">
@@ -132,32 +132,32 @@ export default async function Home({ params, searchParams }: Props) {
           </section>
         )}
 
-        {((cat !== 'Recomendaciones' && articles && articles.length === 0) || 
+        {((cat !== 'Recomendaciones' && articles && articles.length === 0) ||
           (cat === 'Recomendaciones' && (!products || products.length === 0) && (!articles || articles.length === 0))) && (
-          <div className="py-20 text-center max-w-2xl mx-auto">
-            <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-blue-500/20">
-              <span className="text-4xl">🧪</span>
-            </div>
-            <h3 className="text-3xl font-black text-zinc-100 mb-4 italic uppercase tracking-tighter">
-              {cat === 'Protocolos' 
-                ? (lang === 'es' ? 'Forjando Protocolos de Vanguardia' : 'Forging Cutting-Edge Protocols')
-                : (lang === 'es' ? 'Próximamente: Ciencia Aplicada' : 'Coming Soon: Applied Science')}
-            </h3>
-            <p className="text-zinc-500 font-bold leading-relaxed mb-8">
-              {cat === 'Protocolos'
-                ? (lang === 'es' 
-                    ? 'Estamos transformando los últimos descubrimientos científicos en guías paso a paso. Pronto encontrarás aquí rutinas exactas de suplementación, sueño y rendimiento biológico.' 
+            <div className="py-20 text-center max-w-2xl mx-auto">
+              <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-blue-500/20">
+                <span className="text-4xl">🧪</span>
+              </div>
+              <h3 className="text-3xl font-black text-zinc-100 mb-4 italic uppercase tracking-tighter">
+                {cat === 'Protocolos'
+                  ? (lang === 'es' ? 'Forjando Protocolos de Vanguardia' : 'Forging Cutting-Edge Protocols')
+                  : (lang === 'es' ? 'Próximamente: Ciencia Aplicada' : 'Coming Soon: Applied Science')}
+              </h3>
+              <p className="text-zinc-500 font-bold leading-relaxed mb-8">
+                {cat === 'Protocolos'
+                  ? (lang === 'es'
+                    ? 'Estamos transformando los últimos descubrimientos científicos en guías paso a paso. Pronto encontrarás aquí rutinas exactas de suplementación, sueño y rendimiento biológico.'
                     : 'We are transforming the latest scientific discoveries into step-by-step guides. Soon you will find exact supplementation, sleep, and performance routines here.')
-                : (lang === 'es' 
-                    ? 'Estamos procesando nuevos estudios. Vuelve pronto.' 
+                  : (lang === 'es'
+                    ? 'Estamos procesando nuevos estudios. Vuelve pronto.'
                     : 'We are processing new studies. Check back soon.')}
-            </p>
-            <Link href={`/${lang}`} className="inline-block bg-zinc-900 border border-zinc-800 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all">
-              {lang === 'es' ? 'Explorar Ciencia Reciente' : 'Explore Recent Science'}
-            </Link>
-          </div>
-        )}
-        
+              </p>
+              <Link href={`/${lang}`} className="inline-block bg-zinc-900 border border-zinc-800 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all">
+                {lang === 'es' ? 'Explorar Ciencia Reciente' : 'Explore Recent Science'}
+              </Link>
+            </div>
+          )}
+
         {/* Featured Article (Hero) */}
         {featuredArticle && !cat && (
           <section className="mb-12 md:mb-20">
@@ -166,7 +166,7 @@ export default async function Home({ params, searchParams }: Props) {
               {/* Decorative background element */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full -z-0"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/10 blur-[80px] rounded-full -z-0"></div>
-              
+
               <div className="absolute bottom-0 left-0 p-6 md:p-16 z-20 max-w-3xl">
                 <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 bg-blue-600 text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6 shadow-xl shadow-blue-900/40">
                   {dict.home.featured} • {dict.common.trust_score}: {featuredArticle.trust_score}%
@@ -188,18 +188,17 @@ export default async function Home({ params, searchParams }: Props) {
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-8">{dict.home.latest_studies}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {remainingArticles?.map((article) => (
-                <Link 
-                  key={article.id} 
+                <Link
+                  key={article.id}
                   href={`/${lang}/${article.slug}`}
                   className="group bg-zinc-900 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-zinc-800 shadow-sm hover:shadow-2xl hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
                   <div className="p-6 md:p-8 flex-1">
                     <div className="flex items-center justify-between mb-4 md:mb-6">
-                      <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-full border ${
-                        article.trust_score > 90 
-                          ? 'bg-emerald-950/30 text-emerald-400 border-emerald-500/20' 
+                      <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-full border ${article.trust_score > 90
+                          ? 'bg-emerald-950/30 text-emerald-400 border-emerald-500/20'
                           : 'bg-blue-950/30 text-blue-400 border-blue-500/20'
-                      }`}>
+                        }`}>
                         {dict.common.trust_score}: {article.trust_score}%
                       </span>
                       <div className="flex items-center gap-2">
@@ -228,15 +227,15 @@ export default async function Home({ params, searchParams }: Props) {
             </div>
 
             {/* Home AdSense Placeholder */}
-            <AdSenseUnit 
-              slot="home_in_feed" 
+            <AdSenseUnit
+              slot="home_in_feed"
               className="mt-16 h-48"
             />
           </div>
 
           {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-10" id="newsletter-section">
-            <NewsletterForm />
+            <NewsletterForm lang={lang} />
 
             <section className="bg-zinc-900 rounded-[3rem] p-10 border border-zinc-800 shadow-sm">
               <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6">{dict.home.categories}</h4>
@@ -246,9 +245,9 @@ export default async function Home({ params, searchParams }: Props) {
                   { name: lang === 'es' ? 'Recomendaciones' : 'Recommendations', key: 'Recomendaciones' },
                   { name: lang === 'es' ? 'Ciencia' : 'Science', key: 'Ciencia' },
                 ].map((category) => (
-                  <Link 
-                    key={category.key} 
-                    href={`/${lang}?cat=${category.key}`} 
+                  <Link
+                    key={category.key}
+                    href={`/${lang}?cat=${category.key}`}
                     className={`flex items-center justify-between group py-2 text-sm ${cat === category.key ? 'text-blue-500' : 'text-zinc-400'}`}
                   >
                     <span className="font-black uppercase tracking-widest group-hover:text-blue-400 transition-colors">{category.name}</span>
@@ -259,8 +258,8 @@ export default async function Home({ params, searchParams }: Props) {
             </section>
 
             {/* Sidebar AdSense */}
-            <AdSenseUnit 
-              slot="sidebar_skyscraper" 
+            <AdSenseUnit
+              slot="sidebar_skyscraper"
               className="h-[600px]"
             />
           </aside>

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { fetchPubMed, fetchScienceDaily } from '@/scripts/bot/fetchers';
 import { processArticle } from '@/scripts/bot/processor';
 import { publishArticle, isAlreadyPublished } from '@/scripts/bot/publisher';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { sendDailyDigest } from '@/lib/email';
 
 // This route is called by Vercel Cron every 2 days.
 // Protected by CRON_SECRET to prevent unauthorized calls.
@@ -38,6 +40,25 @@ export async function GET(request: Request) {
         results.processed++;
         results.articles.push(processed.slug);
         
+        // 3. Send Newsletter to subscribers
+        const supabase = getSupabaseAdmin();
+        const { data: subscribers } = await supabase
+          .from('subscribers')
+          .select('email, lang')
+          .eq('status', 'active');
+
+        if (subscribers && subscribers.length > 0) {
+          await sendDailyDigest({
+            subscribers,
+            article: {
+              title: processed.title.es, // Default to ES for now or match sub lang
+              tldr: processed.tldr.es,
+              slug: processed.slug,
+              lang: 'es'
+            }
+          });
+        }
+
         // We only want 1 fresh article per day
         console.log(`🎯 [CRON] Successfully published daily article: ${processed.slug}`);
         break; 
