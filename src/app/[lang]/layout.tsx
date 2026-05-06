@@ -31,6 +31,10 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     verification: {
       google: '6NUlRe1_WR9euIXpytbvKZXQSGmq4c9L2usoMAQkmzU',
     },
+    icons: {
+      icon: '/icon.png',
+      apple: '/icon.png',
+    },
   };
 }
 
