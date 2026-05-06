@@ -14,8 +14,9 @@ export async function POST(request: Request) {
     // Update status to 'unsubscribed'
     const { error } = await supabase
       .from('subscribers')
-      .update({ status: 'unsubscribed', updated_at: new Date().toISOString() })
+      .update({ status: 'unsubscribed' })
       .eq('email', email.toLowerCase().trim());
+
 
     if (error) throw error;
 
