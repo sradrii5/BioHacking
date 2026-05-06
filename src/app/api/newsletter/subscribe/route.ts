@@ -32,6 +32,7 @@ export async function POST(request: Request) {
     }
 
     // Send Welcome Email immediately
+    console.log(`📩 Triggering welcome email for: ${email}`);
     await sendWelcomeEmail({ email, lang });
 
     return NextResponse.json({ success: true });

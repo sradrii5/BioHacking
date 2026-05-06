@@ -45,7 +45,10 @@ export async function sendWelcomeEmail({
   email: string;
   lang: string;
 }) {
-  if (!process.env.RESEND_API_KEY) return;
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ RESEND_API_KEY is missing in environment variables!');
+    return;
+  }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
