@@ -167,7 +167,7 @@ export default async function Home({ params, searchParams }: Props) {
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full -z-0"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/10 blur-[80px] rounded-full -z-0"></div>
 
-              <div className="absolute bottom-0 left-0 p-8 md:p-20 z-20 max-w-3xl">
+              <div className="absolute bottom-0 left-0 w-full p-12 md:p-24 z-20 max-w-4xl">
                 <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 bg-blue-600 text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6 shadow-xl shadow-blue-900/40">
                   {dict.home.featured} • {dict.common.trust_score}: {featuredArticle.trust_score}%
                 </span>

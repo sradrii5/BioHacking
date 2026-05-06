@@ -44,6 +44,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Newsletter Subscription Error:', error.message);
-    return NextResponse.json({ error: 'Error al procesar la suscripción' }, { status: 500 });
+    return NextResponse.json({ error: `Error Servidor: ${error.message || 'Fallo crítico'}` }, { status: 500 });
   }
 }
