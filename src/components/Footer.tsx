@@ -5,7 +5,7 @@ interface Props {
   dict: any;
 }
 
-export function Footer({ lang, dict }: Props) {
+export default function Footer({ lang, dict }: Props) {
   return (
     <footer className="bg-zinc-950 border-t border-zinc-900 py-20 mt-auto">
       <div className="container mx-auto px-4 text-center">
