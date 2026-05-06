@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const supabase = getSupabaseAdmin();
 
     // Insert into subscribers table
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('subscribers')
       .insert([
         { 
@@ -24,12 +24,16 @@ export async function POST(request: Request) {
       ]);
 
     if (error) {
+      console.error('❌ Supabase Subscription Error:', error);
       // Handle duplicate emails
       if (error.code === '23505') {
         return NextResponse.json({ error: 'Este email ya está suscrito.' }, { status: 400 });
       }
       throw error;
     }
+
+    console.log('✅ Subscriber saved to database:', email);
+
 
     // Send Welcome Email (Non-blocking for the main response)
     try {
