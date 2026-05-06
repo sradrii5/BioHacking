@@ -31,9 +31,14 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    // Send Welcome Email immediately
-    console.log(`📩 Triggering welcome email for: ${email}`);
-    await sendWelcomeEmail({ email, lang });
+    // Send Welcome Email (Non-blocking for the main response)
+    try {
+      console.log(`📩 Triggering welcome email for: ${email}`);
+      await sendWelcomeEmail({ email, lang });
+    } catch (emailError: any) {
+      console.error('❌ Failed to send welcome email:', emailError.message);
+      // We don't throw here to avoid failing the whole subscription process
+    }
 
     return NextResponse.json({ success: true });
 

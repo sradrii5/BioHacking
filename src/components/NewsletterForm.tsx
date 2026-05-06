@@ -34,7 +34,7 @@ export function NewsletterForm({ lang }: NewsletterFormProps) {
       }
     } catch (err: any) {
       setStatus('error');
-      setMessage(lang === 'es' ? 'Algo ha fallado. ¿Email válido?' : 'Something went wrong. Valid email?');
+      setMessage(err.message || (lang === 'es' ? 'Algo ha fallado. Reintenta.' : 'Something went wrong. Try again.'));
     }
   };
 
