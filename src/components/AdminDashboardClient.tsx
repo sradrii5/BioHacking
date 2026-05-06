@@ -46,7 +46,7 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
     try {
       const { data, error } = await supabase
         .from('articles')
-        .select('id, title, created_at, trust_score, seo_metadata')
+        .select('id, title, created_at, trust_score, seo_metadata, slug')
         .order('created_at', { ascending: false })
         .range(from, to);
 

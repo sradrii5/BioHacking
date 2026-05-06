@@ -18,7 +18,7 @@ export default async function AdminPage({ params }: Props) {
   // Fetch recent articles
   const { data: recentArticles } = await supabase
     .from('articles')
-    .select('id, title, created_at, trust_score, seo_metadata')
+    .select('id, title, created_at, trust_score, seo_metadata, slug')
     .order('created_at', { ascending: false })
     .limit(50);
 
