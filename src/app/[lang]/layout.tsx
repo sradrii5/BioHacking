@@ -33,11 +33,10 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     },
     icons: {
       icon: [
-        { url: '/favicon.ico?v=2' },
-        { url: '/icon.png?v=2', type: 'image/png' },
+        { url: '/icon.png?v=3', type: 'image/png' },
       ],
       apple: [
-        { url: '/apple-touch-icon.png?v=2' },
+        { url: '/icon.png?v=3' },
       ],
     },
   };
