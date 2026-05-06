@@ -44,5 +44,13 @@
     "terms_title": "Términos de Servicio",
     "disclaimer_title": "Aviso Legal Médico",
     "back_to_home": "Volver a la Home"
+  },
+  "unsubscribe": {
+    "title": "Gestionar Suscripción",
+    "description": "Lamentamos verte partir. Introduce tu email para confirmar la baja.",
+    "button": "Confirmar Baja",
+    "success": "Te has dado de baja correctamente. Tu biología ya no recibirá nuestras actualizaciones.",
+    "error": "No hemos podido procesar la baja. Por favor, inténtalo de nuevo o contacta con soporte.",
+    "go_home": "Volver al Inicio"
   }
 }

@@ -44,5 +44,13 @@
     "terms_title": "Terms of Service",
     "disclaimer_title": "Medical Disclaimer",
     "back_to_home": "Back to Home"
+  },
+  "unsubscribe": {
+    "title": "Manage Subscription",
+    "description": "We're sorry to see you go. Enter your email to confirm unsubscription.",
+    "button": "Confirm Unsubscribe",
+    "success": "You have successfully unsubscribed. Your biology will no longer receive our updates.",
+    "error": "We couldn't process the unsubscription. Please try again or contact support.",
+    "go_home": "Back to Home"
   }
 }
