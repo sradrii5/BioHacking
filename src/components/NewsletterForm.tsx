@@ -6,7 +6,8 @@ interface NewsletterFormProps {
   lang: string;
 }
 
-export default function NewsletterForm({ lang }: NewsletterFormProps) {
+// Exportación nombrada para los archivos que usan import { NewsletterForm }
+export function NewsletterForm({ lang }: NewsletterFormProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -87,3 +88,6 @@ export default function NewsletterForm({ lang }: NewsletterFormProps) {
     </div>
   );
 }
+
+// Exportación por defecto para los archivos que usan import NewsletterForm
+export default NewsletterForm;
