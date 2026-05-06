@@ -5,7 +5,8 @@ interface Props {
   dict: any;
 }
 
-export default function Footer({ lang, dict }: Props) {
+// Exportación nombrada para los archivos que usan import { Footer }
+export function Footer({ lang, dict }: Props) {
   return (
     <footer className="bg-zinc-950 border-t border-zinc-900 py-20 mt-auto">
       <div className="container mx-auto px-4 text-center">
@@ -36,3 +37,6 @@ export default function Footer({ lang, dict }: Props) {
     </footer>
   );
 }
+
+// Exportación por defecto para los archivos que usan import Footer
+export default Footer;
