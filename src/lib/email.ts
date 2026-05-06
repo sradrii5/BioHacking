@@ -2,8 +2,6 @@ import { Resend } from 'resend';
 import DailyDigestEmail from '@/emails/DailyDigest';
 import WelcomeEmail from '@/emails/WelcomeEmail';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function sendDailyDigest({
   subscribers,
   article,
@@ -16,6 +14,7 @@ export async function sendDailyDigest({
     return;
   }
 
+  const resend = new Resend(process.env.RESEND_API_KEY);
   console.log(`✉️ Sending newsletter to ${subscribers.length} subscribers...`);
 
   // We could use batch sending for large numbers, but for now individual or small batches is fine

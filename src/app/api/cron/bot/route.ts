@@ -5,8 +5,7 @@ import { publishArticle, isAlreadyPublished } from '@/scripts/bot/publisher';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sendDailyDigest } from '@/lib/email';
 
-// This route is called by Vercel Cron every 2 days.
-// Protected by CRON_SECRET to prevent unauthorized calls.
+// This route is called by Vercel Cron.
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const secret = process.env.CRON_SECRET;
@@ -19,14 +18,12 @@ export async function GET(request: Request) {
   const results = { processed: 0, skipped: 0, failed: 0, articles: [] as string[] };
 
   try {
-    // 1. Fetch from all sources
     const pubmedItems = await fetchPubMed();
     const newsItems = await fetchScienceDaily();
     const allItems = [...pubmedItems, ...newsItems];
 
     console.log(`📡 [CRON] Found ${allItems.length} potential articles.`);
 
-    // 2. Process and publish (Limited to 1 article per run for consistency and safety)
     for (const item of allItems) {
       const alreadyExists = await isAlreadyPublished(item.link, item.title);
       if (alreadyExists) {
@@ -40,7 +37,7 @@ export async function GET(request: Request) {
         results.processed++;
         results.articles.push(processed.slug);
         
-        // 3. Send Newsletter to subscribers
+        // 3. Send Newsletter to subscribers grouped by language
         const supabase = getSupabaseAdmin();
         const { data: subscribers } = await supabase
           .from('subscribers')
@@ -48,18 +45,35 @@ export async function GET(request: Request) {
           .eq('status', 'active');
 
         if (subscribers && subscribers.length > 0) {
-          await sendDailyDigest({
-            subscribers,
-            article: {
-              title: processed.title.es, // Default to ES for now or match sub lang
-              tldr: processed.tldr.es,
-              slug: processed.slug,
-              lang: 'es'
-            }
-          });
+          // Send to Spanish subscribers
+          const esSubs = subscribers.filter(s => s.lang === 'es');
+          if (esSubs.length > 0) {
+            await sendDailyDigest({
+              subscribers: esSubs,
+              article: {
+                title: processed.title.es,
+                tldr: processed.tldr.es,
+                slug: processed.slug,
+                lang: 'es'
+              }
+            });
+          }
+
+          // Send to English subscribers
+          const enSubs = subscribers.filter(s => s.lang === 'en');
+          if (enSubs.length > 0) {
+            await sendDailyDigest({
+              subscribers: enSubs,
+              article: {
+                title: processed.title.en,
+                tldr: processed.tldr.en,
+                slug: processed.slug,
+                lang: 'en'
+              }
+            });
+          }
         }
 
-        // We only want 1 fresh article per day
         console.log(`🎯 [CRON] Successfully published daily article: ${processed.slug}`);
         break; 
       } else {

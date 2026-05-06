@@ -199,7 +199,7 @@ export default async function ArticlePage({ params }: Props) {
             </div>
 
             {/* Newsletter Subscription Section */}
-            <NewsletterForm />
+            <NewsletterForm lang={lang} />
           </div>
 
           {/* Sidebar / Info */}
