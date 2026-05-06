@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
+import { render } from '@react-email/render';
 import DailyDigestEmail from '@/emails/DailyDigest';
 import WelcomeEmail from '@/emails/WelcomeEmail';
+import * as React from 'react';
 
 export async function sendDailyDigest({
   subscribers,
@@ -22,16 +24,18 @@ export async function sendDailyDigest({
 
   for (const subscriber of subscribers) {
     try {
+      const emailHtml = await render(React.createElement(DailyDigestEmail, {
+        title: article.title,
+        tldr: article.tldr,
+        slug: article.slug,
+        lang: article.lang,
+      }));
+
       const { data, error } = await resend.emails.send({
         from: FROM_EMAIL,
         to: subscriber.email,
         subject: article.lang === 'es' ? `🧬 Nueva Ciencia: ${article.title}` : `🧬 New Science: ${article.title}`,
-        react: DailyDigestEmail({
-          title: article.title,
-          tldr: article.tldr,
-          slug: article.slug,
-          lang: article.lang,
-        }),
+        html: emailHtml,
       });
 
       if (error) {
@@ -62,11 +66,13 @@ export async function sendWelcomeEmail({
 
   try {
     console.log(`📩 Sending welcome email to: ${email}`);
+    const emailHtml = await render(React.createElement(WelcomeEmail, { lang }));
+
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
       subject: lang === 'es' ? '🧬 ¡Bienvenido a la Era de la Longevidad!' : '🧬 Welcome to the Longevity Era!',
-      react: WelcomeEmail({ lang }),
+      html: emailHtml,
     });
 
     if (error) {
