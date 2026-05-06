@@ -30,13 +30,22 @@ export async function sendDailyDigest({
         slug: article.slug,
         lang: article.lang,
       }));
+      
+      const emailText = await render(React.createElement(DailyDigestEmail, {
+        title: article.title,
+        tldr: article.tldr,
+        slug: article.slug,
+        lang: article.lang,
+      }), { plainText: true });
 
       const { data, error } = await resend.emails.send({
         from: FROM_EMAIL,
         to: subscriber.email,
         subject: article.lang === 'es' ? `🧬 Nueva Ciencia: ${article.title}` : `🧬 New Science: ${article.title}`,
         html: emailHtml,
+        text: emailText,
       });
+
 
       if (error) {
         console.error(`❌ Resend Error (${subscriber.email}):`, error);
@@ -67,13 +76,16 @@ export async function sendWelcomeEmail({
   try {
     console.log(`📩 Sending welcome email to: ${email}`);
     const emailHtml = await render(React.createElement(WelcomeEmail, { lang }));
+    const emailText = await render(React.createElement(WelcomeEmail, { lang }), { plainText: true });
 
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: email,
       subject: lang === 'es' ? '🧬 ¡Bienvenido a la Era de la Longevidad!' : '🧬 Welcome to the Longevity Era!',
       html: emailHtml,
+      text: emailText,
     });
+
 
     if (error) {
       console.error('❌ Resend Welcome Email Error:', error);
