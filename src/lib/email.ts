@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import DailyDigestEmail from '@/emails/DailyDigest';
+import WelcomeEmail from '@/emails/WelcomeEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -34,5 +35,28 @@ export async function sendDailyDigest({
     } catch (error) {
       console.error(`❌ Failed to send email to ${subscriber.email}:`, error);
     }
+  }
+}
+
+export async function sendWelcomeEmail({
+  email,
+  lang,
+}: {
+  email: string;
+  lang: string;
+}) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  try {
+    await resend.emails.send({
+      from: 'Biohacker Age <newsletter@biohackerage.com>',
+      to: email,
+      subject: lang === 'es' ? '🧬 ¡Bienvenido a la Era de la Longevidad!' : '🧬 Welcome to the Longevity Era!',
+      react: WelcomeEmail({ lang }),
+    });
+  } catch (error) {
+    console.error(`❌ Failed to send welcome email to ${email}:`, error);
   }
 }

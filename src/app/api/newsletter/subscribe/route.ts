@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -29,6 +30,9 @@ export async function POST(request: Request) {
       }
       throw error;
     }
+
+    // Send Welcome Email immediately
+    await sendWelcomeEmail({ email, lang });
 
     return NextResponse.json({ success: true });
 
