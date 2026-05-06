@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 import "../globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -57,6 +58,7 @@ export default async function RootLayout({
           ></script>
         )}
         {children}
+        <Analytics />
       </body>
     </html>
   );
