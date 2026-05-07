@@ -20,9 +20,9 @@ export interface ProcessedArticle {
   title: { es: string; en: string };
   content: { es: string; en: string };
   tldr: { es: string; en: string };
+  slug: { es: string; en: string }; // Updated to support dual slugs
   category: string;
   trustScore: number;
-  slug: string;
   sourceUrl: string;
 }
 
@@ -56,13 +56,14 @@ Your task:
    - title_en: Title in English
    - tldr_es: One sentence summary in Spanish
    - tldr_en: One sentence summary in English
-   - content_es: Full article in Spanish (Markdown format). Use professional formatting with headers and lists. Minimum 400 words.
+   - content_es: Full article in Spanish (Markdown format). Minimum 400 words.
    - content_en: Full article in English (Markdown format). Minimum 400 words.
+   - slug_es: SEO-friendly URL slug in Spanish (3-5 keywords, lowercase, hyphens).
+   - slug_en: SEO-friendly URL slug in English.
    - category: One of: "Protocolos", "Ciencia", "Recomendaciones"
-   - trustScore: A number from 0 to 100 based on scientific evidence (PubMed = higher, News = medium).
-   - slug: A short, SEO-friendly URL slug (3-5 main keywords only, lowercase, hyphens). MAX 60 characters.
+   - trustScore: A number from 0 to 100 based on scientific evidence.
 
-STRICT JSON ONLY. NO MARKDOWN WRAPPERS. NO BACKTICKS.
+STRICT JSON ONLY. NO MARKDOWN WRAPPERS.
             `.trim(),
           },
         ],
@@ -78,9 +79,12 @@ STRICT JSON ONLY. NO MARKDOWN WRAPPERS. NO BACKTICKS.
         title: { es: data.title_es, en: data.title_en },
         tldr: { es: data.tldr_es, en: data.tldr_en },
         content: { es: data.content_es, en: data.content_en },
+        slug: { 
+          es: data.slug_es.substring(0, 60).replace(/-$/, ''),
+          en: data.slug_en.substring(0, 60).replace(/-$/, '')
+        },
         category: data.category,
         trustScore: data.trustScore,
-        slug: data.slug.substring(0, 60).replace(/-$/, ''), // Safety truncation
         sourceUrl: raw.link,
       };
     } catch (error: any) {

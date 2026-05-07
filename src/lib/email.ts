@@ -1,8 +1,59 @@
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import DailyDigestEmail from '@/emails/DailyDigest';
+import WeeklyDigestEmail from '@/emails/WeeklyDigest';
 import WelcomeEmail from '@/emails/WelcomeEmail';
 import * as React from 'react';
+
+export async function sendWeeklyDigest({
+  subscribers,
+  articles,
+  lang,
+}: {
+  subscribers: any[];
+  articles: { title: string; slug: string }[];
+  lang: string;
+}) {
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ Missing RESEND_API_KEY');
+    return;
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const FROM_EMAIL = process.env.EMAIL_FROM || 'Biohacker Age <newsletter@biohackerage.com>';
+
+  console.log(`✉️ Sending weekly digest to ${subscribers.length} subscribers (${lang})...`);
+
+  for (const subscriber of subscribers) {
+    try {
+      const emailHtml = await render(React.createElement(WeeklyDigestEmail, {
+        articles,
+        lang,
+      }));
+      
+      const emailText = await render(React.createElement(WeeklyDigestEmail, {
+        articles,
+        lang,
+      }), { plainText: true });
+
+      const { data, error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: subscriber.email,
+        subject: lang === 'es' ? '🧬 Resumen Semanal: Biohacking y Longevidad' : '🧬 Weekly Digest: Biohacking and Longevity',
+        html: emailHtml,
+        text: emailText,
+      });
+
+      if (error) {
+        console.error(`❌ Resend Error (${subscriber.email}):`, error);
+      } else {
+        console.log(`✅ Weekly email sent to ${subscriber.email}:`, data?.id);
+      }
+    } catch (error) {
+      console.error(`❌ Critical failure sending weekly to ${subscriber.email}:`, error);
+    }
+  }
+}
 
 export async function sendDailyDigest({
   subscribers,

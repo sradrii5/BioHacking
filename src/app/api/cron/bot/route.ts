@@ -24,7 +24,12 @@ export async function GET(request: Request) {
 
     console.log(`📡 [CRON] Found ${allItems.length} potential articles.`);
 
+    let processedInThisRun = 0;
+    const MAX_ARTICLES_PER_RUN = 3;
+
     for (const item of allItems) {
+      if (processedInThisRun >= MAX_ARTICLES_PER_RUN) break;
+
       const alreadyExists = await isAlreadyPublished(item.link, item.title);
       if (alreadyExists) {
         results.skipped++;
@@ -35,47 +40,10 @@ export async function GET(request: Request) {
       if (processed) {
         await publishArticle(processed);
         results.processed++;
-        results.articles.push(processed.slug);
+        results.articles.push(processed.slug.es);
         
-        // 3. Send Newsletter to subscribers grouped by language
-        const supabase = getSupabaseAdmin();
-        const { data: subscribers } = await supabase
-          .from('subscribers')
-          .select('email, lang')
-          .eq('status', 'active');
-
-        if (subscribers && subscribers.length > 0) {
-          // Send to Spanish subscribers
-          const esSubs = subscribers.filter(s => s.lang === 'es');
-          if (esSubs.length > 0) {
-            await sendDailyDigest({
-              subscribers: esSubs,
-              article: {
-                title: processed.title.es,
-                tldr: processed.tldr.es,
-                slug: processed.slug,
-                lang: 'es'
-              }
-            });
-          }
-
-          // Send to English subscribers
-          const enSubs = subscribers.filter(s => s.lang === 'en');
-          if (enSubs.length > 0) {
-            await sendDailyDigest({
-              subscribers: enSubs,
-              article: {
-                title: processed.title.en,
-                tldr: processed.tldr.en,
-                slug: processed.slug,
-                lang: 'en'
-              }
-            });
-          }
-        }
-
-        console.log(`🎯 [CRON] Successfully published daily article: ${processed.slug}`);
-        break; 
+        processedInThisRun++;
+        console.log(`🎯 [CRON] Successfully published daily article: ${processed.slug.es}`);
       } else {
         results.failed++;
       }

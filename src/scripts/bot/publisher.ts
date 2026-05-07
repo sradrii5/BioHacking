@@ -55,21 +55,9 @@ export async function publishArticle(article: ProcessedArticle) {
       return;
     }
 
-    // 1.1 Check if slug already exists in articles to avoid constraint error
-    const { data: slugExisting } = await supabase
-      .from('articles')
-      .select('id')
-      .eq('slug', article.slug)
-      .limit(1);
-
-    if (slugExisting && slugExisting.length > 0) {
-      console.log(`Skipping: Slug "${article.slug}" already taken.`);
-      return;
-    }
-
     console.log(`Publishing: ${article.title.en}...`);
 
-    // 2. Upsert Articles (ES and EN) - silently skip if slug already exists
+    // 2. Upsert Articles (ES and EN)
     const { data: insertedArticles, error: artError } = await supabase
       .from('articles')
       .upsert([
@@ -78,7 +66,7 @@ export async function publishArticle(article: ProcessedArticle) {
           tl_dr: article.tldr.es,
           content_html: article.content.es,
           trust_score: article.trustScore,
-          slug: article.slug,
+          slug: article.slug.es,
           status: 'published',
           seo_metadata: {
             locale: 'es',
@@ -92,7 +80,7 @@ export async function publishArticle(article: ProcessedArticle) {
           tl_dr: article.tldr.en,
           content_html: article.content.en,
           trust_score: article.trustScore,
-          slug: article.slug,
+          slug: article.slug.en,
           status: 'published',
           seo_metadata: {
             locale: 'en',
@@ -101,7 +89,7 @@ export async function publishArticle(article: ProcessedArticle) {
             source_url: article.sourceUrl
           }
         }
-      ], { onConflict: 'slug', ignoreDuplicates: true })
+      ], { onConflict: 'slug' })
       .select();
 
     if (artError) throw artError;
