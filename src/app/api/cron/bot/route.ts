@@ -3,7 +3,6 @@ import { fetchPubMed, fetchScienceDaily } from '@/scripts/bot/fetchers';
 import { processArticle } from '@/scripts/bot/processor';
 import { publishArticle, isAlreadyPublished } from '@/scripts/bot/publisher';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { sendDailyDigest } from '@/lib/email';
 
 // This route is called by Vercel Cron.
 export async function GET(request: Request) {
