@@ -20,10 +20,14 @@ export interface ProcessedArticle {
   title: { es: string; en: string };
   content: { es: string; en: string };
   tldr: { es: string; en: string };
-  slug: { es: string; en: string }; // Updated to support dual slugs
+  slug: { es: string; en: string };
   category: string;
   trustScore: number;
   sourceUrl: string;
+  social: {
+    es: { twitter: string; linkedin: string };
+    en: { twitter: string; linkedin: string };
+  };
 }
 
 export async function processArticle(raw: RawArticle): Promise<ProcessedArticle | null> {
@@ -62,6 +66,10 @@ Your task:
    - slug_en: SEO-friendly URL slug in English.
    - category: One of: "Protocolos", "Ciencia", "Recomendaciones"
    - trustScore: A number from 0 to 100 based on scientific evidence.
+   - social_twitter_es: A short, engaging Twitter thread (3-5 tweets) in Spanish.
+   - social_twitter_en: Twitter thread in English.
+   - social_linkedin_es: A professional LinkedIn post in Spanish.
+   - social_linkedin_en: LinkedIn post in English.
 
 STRICT JSON ONLY. NO MARKDOWN WRAPPERS.
             `.trim(),
@@ -86,6 +94,10 @@ STRICT JSON ONLY. NO MARKDOWN WRAPPERS.
         category: data.category,
         trustScore: data.trustScore,
         sourceUrl: raw.link,
+        social: {
+          es: { twitter: data.social_twitter_es, linkedin: data.social_linkedin_es },
+          en: { twitter: data.social_twitter_en, linkedin: data.social_linkedin_en },
+        }
       };
     } catch (error: any) {
       // Handle Groq rate limits (429)

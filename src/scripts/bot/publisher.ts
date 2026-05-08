@@ -72,7 +72,8 @@ export async function publishArticle(article: ProcessedArticle) {
             locale: 'es',
             category: article.category,
             keywords: ['biohacking', 'longevity', article.category],
-            source_url: article.sourceUrl
+            source_url: article.sourceUrl,
+            social: article.social.es
           }
         },
         {
@@ -86,7 +87,8 @@ export async function publishArticle(article: ProcessedArticle) {
             locale: 'en',
             category: article.category,
             keywords: ['biohacking', 'longevity', article.category],
-            source_url: article.sourceUrl
+            source_url: article.sourceUrl,
+            social: article.social.en
           }
         }
       ], { onConflict: 'slug' })

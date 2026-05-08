@@ -460,20 +460,32 @@ export default function AdminDashboardClient({ lang, recentArticles, products }:
 
                     {/* Social Pack Detail */}
                     {selectedSocial === article.id && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 mt-2 animate-in slide-in-from-top-2 duration-300">
-                        <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-                          <div className="flex justify-between items-center mb-4">
-                            <span className="text-[10px] font-black uppercase text-blue-400">Twitter Thread</span>
-                            <button onClick={() => copyToClipboard(article.seo_metadata?.social?.twitter)} className="text-[9px] bg-blue-600 px-3 py-1 rounded-full font-bold">Copiar</button>
+                      <div className="p-2 mt-2 animate-in slide-in-from-top-2 duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
+                            <div className="flex justify-between items-center mb-4">
+                              <span className="text-[10px] font-black uppercase text-blue-400">Twitter Thread</span>
+                              <button onClick={() => copyToClipboard(article.seo_metadata?.social?.twitter)} className="text-[9px] bg-blue-600 px-3 py-1 rounded-full font-bold">Copiar</button>
+                            </div>
+                            <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.twitter || 'N/A'}</p>
                           </div>
-                          <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.twitter || 'N/A'}</p>
+                          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
+                            <div className="flex justify-between items-center mb-4">
+                              <span className="text-[10px] font-black uppercase text-emerald-400">LinkedIn Post</span>
+                              <button onClick={() => copyToClipboard(article.seo_metadata?.social?.linkedin)} className="text-[9px] bg-emerald-600 px-3 py-1 rounded-full font-bold">Copiar</button>
+                            </div>
+                            <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.linkedin || 'N/A'}</p>
+                          </div>
                         </div>
-                        <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-                          <div className="flex justify-between items-center mb-4">
-                            <span className="text-[10px] font-black uppercase text-emerald-400">LinkedIn Post</span>
-                            <button onClick={() => copyToClipboard(article.seo_metadata?.social?.linkedin)} className="text-[9px] bg-emerald-600 px-3 py-1 rounded-full font-bold">Copiar</button>
-                          </div>
-                          <p className="text-xs text-slate-300 whitespace-pre-wrap line-clamp-6">{article.seo_metadata?.social?.linkedin || 'N/A'}</p>
+                        
+                        <div className="mt-4 flex justify-center">
+                          <button 
+                            onClick={() => handleGenerateSocial(article.id)}
+                            disabled={genLoading === article.id}
+                            className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all flex items-center gap-2 disabled:opacity-50"
+                          >
+                            {genLoading === article.id ? '⚙️ Generando...' : '🔄 Regenerar Social Pack con IA'}
+                          </button>
                         </div>
                       </div>
                     )}
