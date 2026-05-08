@@ -147,10 +147,14 @@ export default async function ArticlePage({ params }: Props) {
       </header>
 
       {/* Content Section */}
-      <main className="container mx-auto px-4 max-w-7xl py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-          {/* Main Content Area - Always centered relative to header */}
-          <div className="lg:col-start-2 lg:col-span-10 xl:col-start-3 xl:col-span-8 space-y-12">
+      <main className="container mx-auto px-4 max-w-[1600px] py-12">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 lg:gap-16">
+          
+          {/* Spacer for XL to keep content centered */}
+          <div className="hidden xl:block xl:col-span-2"></div>
+
+          {/* Main Content Area - THE CENTERED CORE */}
+          <div className="xl:col-span-7 space-y-12">
             <div className="bg-zinc-900/50 backdrop-blur-sm p-8 md:p-16 rounded-[3rem] border border-zinc-800/50 shadow-2xl">
               <div
                 className="prose prose-invert prose-xl max-w-none 
@@ -200,8 +204,8 @@ export default async function ArticlePage({ params }: Props) {
             <NewsletterForm lang={lang} />
           </div>
 
-          {/* Sidebar - Positioned for context but not pushing the center */}
-          <aside className="lg:col-span-12 xl:col-span-4 space-y-8 mt-12 xl:mt-0">
+          {/* Sidebar - Positioned on the right without pushing the center */}
+          <aside className="xl:col-span-3 space-y-8">
             <div className="xl:sticky xl:top-12 space-y-8">
               <section>
                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4">{dict.article.scientific_evidence}</h4>
