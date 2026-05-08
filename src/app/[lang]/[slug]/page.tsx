@@ -6,6 +6,7 @@ import { NewsletterForm } from '@/components/NewsletterForm';
 import { AdSenseUnit } from '@/components/AdSenseUnit';
 import { AITransformerService } from '@/lib/services/ai-transformer';
 import { Footer } from '@/components/Footer';
+import { TrustScoreTooltip } from '@/components/TrustScoreTooltip';
 
 
 import { getDictionary } from '@/lib/dictionaries';
@@ -110,25 +111,14 @@ export default async function ArticlePage({ params }: Props) {
           </Link>
 
           <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="group relative flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full shadow-2xl">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                {dict.common.trust_score}: <span className="text-blue-500">{article.trust_score}%</span>
-              </span>
-              <div className="relative flex items-center">
-                <button className="w-5 h-5 rounded-full bg-zinc-800 text-[9px] flex items-center justify-center font-black hover:bg-blue-600 transition-colors cursor-help border border-zinc-700">
-                  i
-                </button>
-                {/* Custom Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-left">
-                  <p className="text-[9px] text-zinc-400 leading-relaxed font-medium">
-                    {lang === 'es'
-                      ? 'Nivel de confianza calculado por IA analizando el rigor del estudio, la muestra (n) y el factor de impacto de la fuente científica.'
-                      : 'Trust Score calculated by AI analyzing study rigor, sample size (n), and the scientific source impact factor.'}
-                  </p>
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-zinc-800"></div>
-                </div>
-              </div>
-            </div>
+            <TrustScoreTooltip 
+              score={article.trust_score}
+              label={dict.common.trust_score}
+              description={lang === 'es'
+                ? 'Nivel de confianza calculado por IA analizando el rigor del estudio, la muestra (n) y el factor de impacto de la fuente científica.'
+                : 'Trust Score calculated by AI analyzing study rigor, sample size (n), and the scientific source impact factor.'
+              }
+            />
             <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
               {new Date(article.created_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
             </span>
