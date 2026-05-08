@@ -148,9 +148,9 @@ export default async function ArticlePage({ params }: Props) {
 
       {/* Content Section */}
       <main className="container mx-auto px-4 max-w-7xl py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <div className="flex flex-col lg:flex-row gap-16 justify-center">
           {/* Main Content */}
-          <div className="lg:col-span-8 space-y-12">
+          <div className="w-full max-w-4xl space-y-12">
             <div className="bg-zinc-900/50 backdrop-blur-sm p-8 md:p-16 rounded-[3rem] border border-zinc-800/50 shadow-2xl">
               <div
                 className="prose prose-invert prose-xl max-w-none 
@@ -161,6 +161,10 @@ export default async function ArticlePage({ params }: Props) {
                   prose-ul:list-disc prose-li:text-zinc-300"
                 dangerouslySetInnerHTML={{
                   __html: finalContent
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/^\n/gm, '<br/>')
                 }}
               />
 
