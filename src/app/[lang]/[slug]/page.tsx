@@ -148,9 +148,9 @@ export default async function ArticlePage({ params }: Props) {
 
       {/* Content Section */}
       <main className="container mx-auto px-4 max-w-7xl py-12">
-        <div className="flex flex-col lg:flex-row gap-16 justify-center">
-          {/* Main Content */}
-          <div className="w-full max-w-4xl space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+          {/* Main Content Area - Always centered relative to header */}
+          <div className="lg:col-start-2 lg:col-span-10 xl:col-start-3 xl:col-span-8 space-y-12">
             <div className="bg-zinc-900/50 backdrop-blur-sm p-8 md:p-16 rounded-[3rem] border border-zinc-800/50 shadow-2xl">
               <div
                 className="prose prose-invert prose-xl max-w-none 
@@ -161,10 +161,14 @@ export default async function ArticlePage({ params }: Props) {
                   prose-ul:list-disc prose-li:text-zinc-300"
                 dangerouslySetInnerHTML={{
                   __html: finalContent
+                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
                     .replace(/^## (.*$)/gim, '<h2>$1</h2>')
                     .replace(/^### (.*$)/gim, '<h3>$1</h3>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/^\n/gm, '<br/>')
+                    .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                    .replace(/^\- (.*$)/gim, '<li>$1</li>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br/>')
                 }}
               />
 
@@ -196,28 +200,24 @@ export default async function ArticlePage({ params }: Props) {
             <NewsletterForm lang={lang} />
           </div>
 
-          {/* Sidebar / Info */}
-          <aside className="lg:col-span-4 space-y-8">
-            <div className="sticky top-12 space-y-8">
-              {study && (
-                <section>
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4">{dict.article.scientific_evidence}</h4>
-                  <ScientificSourceCard
-                    title={study.title}
-                    sourceUrl={study.source_url}
-                    publishDate={study.publish_date}
-                    trustScore={article.trust_score}
-                    dict={dict.common}
-                  />
-                </section>
-              )}
-
-              {/* Newsletter Premium Card Removed to avoid duplication */}
+          {/* Sidebar - Positioned for context but not pushing the center */}
+          <aside className="lg:col-span-12 xl:col-span-4 space-y-8 mt-12 xl:mt-0">
+            <div className="xl:sticky xl:top-12 space-y-8">
+              <section>
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4">{dict.article.scientific_evidence}</h4>
+                <ScientificSourceCard
+                  title={study?.title || article.title}
+                  sourceUrl={sourceUrl || '#'}
+                  publishDate={study?.publish_date || article.created_at}
+                  trustScore={article.trust_score}
+                  dict={dict.common}
+                />
+              </section>
 
               {/* AdSense Sidebar Placeholder */}
               <AdSenseUnit 
                 slot="article_sidebar" 
-                className="h-[600px]"
+                className="h-[300px] xl:h-[600px]"
               />
             </div>
           </aside>
