@@ -33,6 +33,21 @@ export async function generateMetadata({ params }: Props) {
       title: article?.title,
       description: article?.tl_dr,
       type: 'article',
+      url: `https://www.biohackerage.com/${lang}/${slug}`,
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: article?.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article?.title,
+      description: article?.tl_dr,
+      images: ['/og-image.png'],
     },
   };
 }
