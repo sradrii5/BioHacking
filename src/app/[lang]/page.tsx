@@ -31,6 +31,15 @@ export default async function Home({ params, searchParams }: Props) {
 
   const { data: articles, error } = await query.order('created_at', { ascending: false });
 
+  // Translation mapping for categories
+  const categoryDisplayNames: Record<string, string> = {
+    'Protocolos': dict.nav.protocols,
+    'Recomendaciones': dict.nav.supplements,
+    'Ciencia': dict.nav.science
+  };
+
+  const displayCat = cat ? (categoryDisplayNames[cat] || cat) : null;
+
   // 2. Fetch products if category is Recomendaciones
   const { data: products } = cat === 'Recomendaciones'
     ? await supabase.from('products').select('*').eq('lang', lang).limit(24)
@@ -85,7 +94,7 @@ export default async function Home({ params, searchParams }: Props) {
         {cat && (
           <div className="mb-16 border-l-4 border-blue-600 pl-8 py-2">
             <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white font-heading">
-              {cat}
+              {displayCat}
             </h2>
             <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px] mt-4">
               {lang === 'es' ? 'Protocolos de Vanguardia y Ciencia Aplicada' : 'Cutting-edge Protocols and Applied Science'}
@@ -206,7 +215,7 @@ export default async function Home({ params, searchParams }: Props) {
                           {new Date(article.created_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US')}
                         </span>
                         <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${article.seo_metadata?.category === 'Protocolos' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
-                          {article.seo_metadata?.category || 'Ciencia'}
+                          {article.seo_metadata?.category ? (categoryDisplayNames[article.seo_metadata.category] || article.seo_metadata.category) : (categoryDisplayNames['Ciencia'] || 'Ciencia')}
                         </span>
                       </div>
                     </div>
