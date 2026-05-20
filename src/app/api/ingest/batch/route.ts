@@ -9,7 +9,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
  */
 export async function POST(req: Request) {
   try {
-    const { query, count = 5, locale = 'es' } = await req.json();
+    const { query, count = 5 } = await req.json();
 
     if (!query) {
       return NextResponse.json({ error: 'query is required' }, { status: 400 });
@@ -19,20 +19,28 @@ export async function POST(req: Request) {
     const supabase = getSupabaseAdmin();
 
     // 1. Search PubMed for IDs only (fast, no AI)
-    console.log(`📥 Enqueuing batch: ${count} articles for "${query}" in ${locale}`);
+    console.log(`📥 Enqueuing batch: ${count} articles for "${query}" in both 'es' and 'en'`);
     const ids = await pubmed.searchStudies(query, count);
 
     if (ids.length === 0) {
       return NextResponse.json({ message: 'No articles found for this query.', queued: 0 });
     }
 
-    // 2. Save one queue job per article ID
-    const jobs = ids.map((pmid) => ({
-      query,
-      locale,
-      pubmed_ids: [pmid],
-      status: 'pending',
-    }));
+    // 2. Save two queue jobs (ES and EN) per article ID
+    const jobs = ids.flatMap((pmid) => [
+      {
+        query,
+        locale: 'es',
+        pubmed_ids: [pmid],
+        status: 'pending',
+      },
+      {
+        query,
+        locale: 'en',
+        pubmed_ids: [pmid],
+        status: 'pending',
+      }
+    ]);
 
     const { data, error } = await supabase
       .from('ingestion_queue')
@@ -41,16 +49,17 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
-    console.log(`✅ Queued ${data.length} jobs for processing.`);
+    console.log(`✅ Queued ${data.length} jobs for processing (both Spanish and English).`);
 
     return NextResponse.json({
-      message: `${data.length} articles added to the processing queue. The worker will process them in the next few minutes.`,
+      message: `${data.length} jobs (Spanish & English versions) added to the processing queue. The worker will process them in the next few minutes.`,
       queued: data.length,
-      jobIds: data.map((j: any) => j.id),
+      jobIds: data.map((j: { id: string }) => j.id),
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Enqueue error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
