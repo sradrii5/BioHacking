@@ -42,10 +42,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, message: 'No subscribers found' });
     }
 
-    // 3. Group articles and subscribers by language
+    // 3. Group articles and subscribers by language and process concurrently
     const langs = ['es', 'en'];
 
-    for (const lang of langs) {
+    const jobs = langs.map(async (lang) => {
       const langArticles = articles
         .filter(a => a.seo_metadata?.locale === lang)
         .map(a => ({ title: a.title, slug: a.slug }));
@@ -59,8 +59,12 @@ export async function GET(request: Request) {
           articles: langArticles,
           lang
         });
+      } else {
+        console.log(`ℹ️ Language ${lang} has no articles or active subscribers. Skipping.`);
       }
-    }
+    });
+
+    await Promise.allSettled(jobs);
 
     console.log('✅ [CRON] Weekly newsletter finished.');
     return NextResponse.json({ success: true, articlesCount: articles.length });

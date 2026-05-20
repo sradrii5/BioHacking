@@ -5,6 +5,38 @@ import WeeklyDigestEmail from '@/emails/WeeklyDigest';
 import WelcomeEmail from '@/emails/WelcomeEmail';
 import * as React from 'react';
 
+/**
+ * Reusable utility to process tasks concurrently in controlled batches.
+ * Helps prevent rate limiting (e.g. Resend 5/s) and serverless memory saturation.
+ */
+async function sendInBatches<T>(
+  items: T[],
+  batchSize: number,
+  processor: (item: T) => Promise<void>,
+  delayMs: number = 1000
+) {
+  for (let i = 0; i < items.length; i += batchSize) {
+    const chunk = items.slice(i, i + batchSize);
+    
+    // Process all items in the current chunk concurrently
+    await Promise.allSettled(
+      chunk.map(async (item) => {
+        try {
+          await processor(item);
+        } catch (error) {
+          console.error('❌ Error processing email in concurrent batch:', error);
+        }
+      })
+    );
+
+    // If there are more items left to process, wait to respect the rate limit
+    if (i + batchSize < items.length) {
+      console.log(`⏱️ Waiting ${delayMs}ms to respect API rate limits...`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
 export async function sendWeeklyDigest({
   subscribers,
   articles,
@@ -22,37 +54,34 @@ export async function sendWeeklyDigest({
   const resend = new Resend(process.env.RESEND_API_KEY);
   const FROM_EMAIL = process.env.EMAIL_FROM || 'Biohacker Age <newsletter@biohackerage.com>';
 
-  console.log(`✉️ Sending weekly digest to ${subscribers.length} subscribers (${lang})...`);
+  console.log(`✉️ Sending weekly digest concurrently to ${subscribers.length} subscribers (${lang})...`);
 
-  for (const subscriber of subscribers) {
-    try {
-      const emailHtml = await render(React.createElement(WeeklyDigestEmail, {
-        articles,
-        lang,
-      }));
-      
-      const emailText = await render(React.createElement(WeeklyDigestEmail, {
-        articles,
-        lang,
-      }), { plainText: true });
+  // We send in batches of 5 to safely stay under Resend's 10/s rate limit
+  await sendInBatches(subscribers, 5, async (subscriber) => {
+    const emailHtml = await render(React.createElement(WeeklyDigestEmail, {
+      articles,
+      lang,
+    }));
+    
+    const emailText = await render(React.createElement(WeeklyDigestEmail, {
+      articles,
+      lang,
+    }), { plainText: true });
 
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: subscriber.email,
-        subject: lang === 'es' ? '🧬 Resumen Semanal: Biohacking y Longevidad' : '🧬 Weekly Digest: Biohacking and Longevity',
-        html: emailHtml,
-        text: emailText,
-      });
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: subscriber.email,
+      subject: lang === 'es' ? '🧬 Resumen Semanal: Biohacking y Longevidad' : '🧬 Weekly Digest: Biohacking and Longevity',
+      html: emailHtml,
+      text: emailText,
+    });
 
-      if (error) {
-        console.error(`❌ Resend Error (${subscriber.email}):`, error);
-      } else {
-        console.log(`✅ Weekly email sent to ${subscriber.email}:`, data?.id);
-      }
-    } catch (error) {
-      console.error(`❌ Critical failure sending weekly to ${subscriber.email}:`, error);
+    if (error) {
+      console.error(`❌ Resend Error (${subscriber.email}):`, error);
+    } else {
+      console.log(`✅ Weekly email sent to ${subscriber.email}:`, data?.id);
     }
-  }
+  });
 }
 
 export async function sendDailyDigest({
@@ -68,45 +97,40 @@ export async function sendDailyDigest({
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  // TIP: Use 'onboarding@resend.dev' if your domain is not verified yet
   const FROM_EMAIL = process.env.EMAIL_FROM || 'Biohacker Age <newsletter@biohackerage.com>';
 
-  console.log(`✉️ Sending newsletter to ${subscribers.length} subscribers...`);
+  console.log(`✉️ Sending daily newsletter concurrently to ${subscribers.length} subscribers...`);
 
-  for (const subscriber of subscribers) {
-    try {
-      const emailHtml = await render(React.createElement(DailyDigestEmail, {
-        title: article.title,
-        tldr: article.tldr,
-        slug: article.slug,
-        lang: article.lang,
-      }));
-      
-      const emailText = await render(React.createElement(DailyDigestEmail, {
-        title: article.title,
-        tldr: article.tldr,
-        slug: article.slug,
-        lang: article.lang,
-      }), { plainText: true });
+  // We send in batches of 5 to safely stay under Resend's 10/s rate limit
+  await sendInBatches(subscribers, 5, async (subscriber) => {
+    const emailHtml = await render(React.createElement(DailyDigestEmail, {
+      title: article.title,
+      tldr: article.tldr,
+      slug: article.slug,
+      lang: article.lang,
+    }));
+    
+    const emailText = await render(React.createElement(DailyDigestEmail, {
+      title: article.title,
+      tldr: article.tldr,
+      slug: article.slug,
+      lang: article.lang,
+    }), { plainText: true });
 
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
-        to: subscriber.email,
-        subject: article.lang === 'es' ? `🧬 Nueva Ciencia: ${article.title}` : `🧬 New Science: ${article.title}`,
-        html: emailHtml,
-        text: emailText,
-      });
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: subscriber.email,
+      subject: article.lang === 'es' ? `🧬 Nueva Ciencia: ${article.title}` : `🧬 New Science: ${article.title}`,
+      html: emailHtml,
+      text: emailText,
+    });
 
-
-      if (error) {
-        console.error(`❌ Resend Error (${subscriber.email}):`, error);
-      } else {
-        console.log(`✅ Email sent to ${subscriber.email}:`, data?.id);
-      }
-    } catch (error) {
-      console.error(`❌ Critical failure sending to ${subscriber.email}:`, error);
+    if (error) {
+      console.error(`❌ Resend Error (${subscriber.email}):`, error);
+    } else {
+      console.log(`✅ Daily email sent to ${subscriber.email}:`, data?.id);
     }
-  }
+  });
 }
 
 export async function sendWelcomeEmail({
