@@ -41,9 +41,22 @@ export async function GET(req: Request) {
     // 2. Fetch 2 from bioRxiv (pre-prints)
     const bStudies = await biorxiv.fetchRecent(2);
 
+    // Map PubMed studies (fully enriched) and bioRxiv studies (minimal shape) into a unified array
     const allStudies = [
-      ...pStudies.map(s => ({ title: s.title, abstract: s.abstract, url: s.url, date: s.pubDate, type: 'PubMed' })),
-      ...bStudies.map(s => ({ title: s.title, abstract: s.abstract, url: `https://doi.org/${s.doi}`, date: s.date, type: 'bioRxiv' }))
+      ...pStudies, // Already PubMedStudy with full enrichment
+      ...bStudies.map(s => ({
+        pmid: '',
+        title: s.title,
+        abstract: s.abstract,
+        pubDate: s.date,
+        url: `https://doi.org/${s.doi}`,
+        authors: [] as string[],
+        firstAuthorLastName: '',
+        institution: '',
+        journal: 'bioRxiv',
+        doi: s.doi,
+        sampleSizeHint: '',
+      })),
     ];
 
     for (const study of allStudies) {
@@ -51,14 +64,14 @@ export async function GET(req: Request) {
         const { data: existing } = await supabase.from('studies').select('id').eq('source_url', study.url).single();
         if (existing) continue;
 
-        const transformed = await transformer.transformStudy(study.abstract);
+        const transformed = await transformer.transformStudy(study, 'es');
         const slugBase = transformed.metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
         await supabase.from('articles').insert({
           study_id: (await supabase.from('studies').insert({
             title: study.title,
             source_url: study.url,
-            publish_date: study.date,
+            publish_date: study.pubDate,
             raw_summary: study.abstract
           }).select().single()).data.id,
           title: transformed.metadata.title,
@@ -71,11 +84,11 @@ export async function GET(req: Request) {
             locale: 'es',
             category: transformed.metadata.category,
             social: transformed.social,
-            source_type: study.type 
+            source_type: study.journal || 'PubMed' 
           }
         });
 
-        results.push({ title: transformed.metadata.title, type: study.type });
+        results.push({ title: transformed.metadata.title, type: study.journal || 'PubMed' });
       } catch (e) {
         console.error(`Error ingesting ${study.title}:`, e);
       }

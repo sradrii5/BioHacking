@@ -17,7 +17,7 @@ async function sendInBatches<T>(
 ) {
   for (let i = 0; i < items.length; i += batchSize) {
     const chunk = items.slice(i, i + batchSize);
-    
+
     // Process all items in the current chunk concurrently
     await Promise.allSettled(
       chunk.map(async (item) => {
@@ -29,11 +29,8 @@ async function sendInBatches<T>(
       })
     );
 
-    // If there are more items left to process, wait to respect the rate limit
-    if (i + batchSize < items.length) {
-      console.log(`⏱️ Waiting ${delayMs}ms to respect API rate limits...`);
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
+    // Always wait between batches to respect Resend's 5 req/s rate limit
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
 }
 
@@ -56,8 +53,8 @@ export async function sendWeeklyDigest({
 
   console.log(`✉️ Sending weekly digest concurrently to ${subscribers.length} subscribers (${lang})...`);
 
-  // We send in batches of 5 to safely stay under Resend's 10/s rate limit
-  await sendInBatches(subscribers, 5, async (subscriber) => {
+  // Batch of 2 with 300ms gap = ~6 emails/s max. Stays under Resend's 5 req/s limit.
+  await sendInBatches(subscribers, 2, async (subscriber) => {
     const emailHtml = await render(React.createElement(WeeklyDigestEmail, {
       articles,
       lang,
@@ -101,8 +98,8 @@ export async function sendDailyDigest({
 
   console.log(`✉️ Sending daily newsletter concurrently to ${subscribers.length} subscribers...`);
 
-  // We send in batches of 5 to safely stay under Resend's 10/s rate limit
-  await sendInBatches(subscribers, 5, async (subscriber) => {
+  // Batch of 2 with 300ms gap = ~6 emails/s max. Stays under Resend's 5 req/s limit.
+  await sendInBatches(subscribers, 2, async (subscriber) => {
     const emailHtml = await render(React.createElement(DailyDigestEmail, {
       title: article.title,
       tldr: article.tldr,

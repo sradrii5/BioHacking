@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
       // 3. AI Transformation (Two-step process)
       console.log(`Transforming study: ${study.title} (${locale})`);
-      const transformed = await ai.transformStudy(study.abstract, locale as Locale);
+      const transformed = await ai.transformStudy(study, locale as Locale);
 
       // 4. Save transformed article to Supabase
       const slug = study.title.toLowerCase()

@@ -93,7 +93,9 @@ export async function GET(request: Request) {
       if (studyError) throw studyError;
 
       // 5. Transform with AI (Groq first, then Gemini)
-      const transformed = await transformer.transformStudy(study.abstract, job.locale as any);
+      // Pass the full enriched study object so the LLM has access to authors,
+      // institution, journal, DOI, and sample size for high-quality generation.
+      const transformed = await transformer.transformStudy(study, job.locale as any);
 
       // 6. Save article
       const slug = transformed.metadata.title

@@ -10,14 +10,49 @@ const supabase = createClient(
 );
 
 async function check() {
-  const { data, error } = await supabase
-    .from('articles')
-    .select('id, title, slug, seo_metadata')
-    .order('created_at', { ascending: false })
-    .limit(10);
+  const cronTime = new Date('2026-05-17T10:00:00.000Z');
+  const sevenDaysBeforeCron = new Date(cronTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  console.log('Cron Execution Time Simulated:', cronTime.toISOString());
+  console.log('Seven Days Before Cron:', sevenDaysBeforeCron.toISOString());
 
-  if (error) console.error(error);
-  else console.log(JSON.stringify(data, null, 2));
+  // 1. Query articles
+  const { data: articles, error: artError } = await supabase
+    .from('articles')
+    .select('id, title, slug, created_at, status, seo_metadata');
+
+  if (artError) {
+    console.error('Articles Error:', artError);
+  } else {
+    console.log(`Total articles found: ${articles.length}`);
+    const activeAtCron = articles.filter(a => {
+      const created = new Date(a.created_at);
+      return created >= sevenDaysBeforeCron && created <= cronTime && a.status === 'published';
+    });
+    console.log(`Articles active at cron time: ${activeAtCron.length}`);
+    
+    const esArticles = activeAtCron.filter(a => a.seo_metadata?.locale === 'es');
+    const enArticles = activeAtCron.filter(a => a.seo_metadata?.locale === 'en');
+    
+    console.log(`- Spanish ('es') at cron: ${esArticles.length}`);
+    esArticles.forEach(a => console.log(`  * [es] [${a.created_at}] ${a.title}`));
+    console.log(`- English ('en') at cron: ${enArticles.length}`);
+    enArticles.forEach(a => console.log(`  * [en] [${a.created_at}] ${a.title}`));
+  }
+
+  // 2. Query subscribers
+  const { data: subscribers, error: subError } = await supabase
+    .from('subscribers')
+    .select('*');
+
+  if (subError) {
+    console.error('Subscribers Error:', subError);
+  } else {
+    console.log('\n--- Subscribers ---');
+    subscribers.forEach(s => {
+      console.log(`- [${s.status}] [${s.lang}] ${s.email} (${s.created_at})`);
+    });
+  }
 }
 
 check();
