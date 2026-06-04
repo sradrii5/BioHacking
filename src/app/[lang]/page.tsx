@@ -25,7 +25,7 @@ export default async function Home({ params, searchParams }: Props) {
     .eq('status', 'published')
     .eq('seo_metadata->>locale', lang);
 
-  if (cat) {
+  if (cat && cat !== 'Recomendaciones') {
     query = query.eq('seo_metadata->>category', cat);
   }
 
