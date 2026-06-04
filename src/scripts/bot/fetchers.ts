@@ -15,6 +15,41 @@ export interface RawArticle {
   source: 'PubMed' | 'ScienceDaily' | 'News';
 }
 
+const BIOHACKING_KEYWORDS = [
+  'longevity', 'aging', 'ageing', 'anti-aging', 'anti-ageing', 'lifespan', 'healthspan',
+  'cognitive', 'nootropic', 'brain', 'memory', 'neuroprotection', 'neurodegenerative',
+  'autophagy', 'fasting', 'mitochondria', 'mitochondrial', 'microbiome', 'gut health',
+  'peptide', 'sleep quality', 'circadian', 'melatonin', 'hormesis', 'cold plunge', 'sauna',
+  'heat shock', 'cold shock', 'sirtuin', 'ampk', 'mtor', 'rapamycin', 'metformin',
+  'senolytic', 'senescent', 'supplement', 'resveratrol', 'nad+', 'nmn', 'nicotinamide',
+  'quercetin', 'fisetin', 'curcumin', 'ashwagandha', 'bacopa', 'lion\'s mane', 'exercise',
+  'muscle mass', 'hypertrophy', 'vo2 max', 'cardiovascular health', 'metabolic health',
+  'epigenetic', 'telomere', 'stem cell', 'cellular reprogramming', 'biohack', 'performance'
+];
+
+const EXCLUDE_KEYWORDS = [
+  'pregnancy', 'pregnant', 'preeclampsia', 'pre-eclampsia', 'fetal', 'fetus',
+  'buffalo', 'buffaloes', 'cow', 'cows', 'sheep', 'goat', 'goat\'s', 'pig', 'pigs', 'veterinary',
+  'pediatric', 'infant', 'childhood', 'maternal', 'embryo transfer', 'obstetric',
+  'plant biology', 'crop', 'agriculture', 'forest', 'spruce', 'beetle', 'bark'
+];
+
+export function isBiohackingRelated(title: string, content: string = ''): boolean {
+  const text = `${title} ${content}`.toLowerCase();
+  
+  const hasExclude = EXCLUDE_KEYWORDS.some(keyword => text.includes(keyword));
+  if (hasExclude) {
+    console.log(`🚫 Filtering out irrelevant study: "${title}"`);
+    return false;
+  }
+
+  const hasKeyword = BIOHACKING_KEYWORDS.some(keyword => text.includes(keyword));
+  if (!hasKeyword) {
+    console.log(`🚫 Filtering out non-biohacking study: "${title}"`);
+  }
+  return hasKeyword;
+}
+
 /**
  * Fetches latest longevity articles from ScienceDaily RSS and others
  */
@@ -34,7 +69,7 @@ export async function fetchScienceDaily(): Promise<RawArticle[]> {
       console.log(`📡 Trying RSS feed: ${url}`);
       const feed = await parser.parseURL(url);
       if (feed.items.length > 0) {
-        const mapped = feed.items.slice(0, 3).map(item => ({
+        const mapped = feed.items.map(item => ({
           title: item.title || '',
           link: item.link || '',
           contentSnippet: item.contentSnippet,
@@ -47,9 +82,13 @@ export async function fetchScienceDaily(): Promise<RawArticle[]> {
       console.warn(`⚠️ Failed to fetch RSS from ${url}:`, (error as any).message);
     }
   }
-  
-  // Return a random selection or the most recent ones
-  return allArticles.sort(() => Math.random() - 0.5).slice(0, 10);
+
+  // Filter for biohacking/longevity relevance
+  const filteredArticles = allArticles.filter(art => isBiohackingRelated(art.title, art.contentSnippet || ''));
+  console.log(`📢 RSS Ingestion: Found ${filteredArticles.length} biohacking articles out of ${allArticles.length} total.`);
+
+  // Return a random selection of the filtered ones
+  return filteredArticles.sort(() => Math.random() - 0.5).slice(0, 10);
 }
 
 /**
@@ -57,8 +96,8 @@ export async function fetchScienceDaily(): Promise<RawArticle[]> {
  */
 export async function fetchPubMed(): Promise<RawArticle[]> {
   try {
-    const query = 'longevity[Title/Abstract] AND (hacker OR protocol OR supplement)';
-    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmode=json&retmax=5&sort=pub_date`;
+    const query = '(longevity[Title/Abstract] OR "aging"[Title/Abstract] OR "anti-aging"[Title/Abstract] OR "mitochondria"[Title/Abstract] OR "autophagy"[Title/Abstract] OR "cognitive enhancement"[Title/Abstract] OR "nootropic"[Title/Abstract] OR "healthspan"[Title/Abstract]) AND ("protocol"[Title/Abstract] OR "supplement"[Title/Abstract] OR "intervention"[Title/Abstract] OR "diet"[Title/Abstract] OR "exercise"[Title/Abstract])';
+    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmode=json&retmax=20&sort=pub_date`;
     
     const response = await fetch(searchUrl);
     const data = await response.json();
@@ -70,15 +109,21 @@ export async function fetchPubMed(): Promise<RawArticle[]> {
     const detailsResponse = await fetch(detailsUrl);
     const detailsData = await detailsResponse.json();
 
-    return ids.map((id: string) => {
+    const mapped = ids.map((id: string) => {
       const item = detailsData.result[id];
       return {
-        title: item.title || '',
+        title: item?.title || '',
         link: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
-        pubDate: item.pubdate,
+        pubDate: item?.pubdate,
         source: 'PubMed' as const
       };
-    });
+    }).filter((art: any) => art.title);
+
+    // Double check with keyword filters to be absolutely safe
+    const filtered = mapped.filter((art: any) => isBiohackingRelated(art.title));
+    console.log(`📢 PubMed Ingestion: Found ${filtered.length} relevant biohacking studies out of ${mapped.length} fetched.`);
+
+    return filtered.slice(0, 5);
   } catch (error) {
     console.error('Error fetching PubMed:', error);
     return [];
