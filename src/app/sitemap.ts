@@ -44,10 +44,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   });
 
-  // 3. Dynamic Articles from Database
   const { data: articles } = await supabase
     .from('articles')
     .select('slug, created_at, seo_metadata')
+    .eq('status', 'published')
     .order('created_at', { ascending: false });
 
   const articleEntries: MetadataRoute.Sitemap = (articles || []).map((article) => {
