@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getDictionary } from '@/lib/dictionaries';
@@ -6,19 +7,22 @@ import NewsletterForm from '@/components/NewsletterForm';
 import { AdSenseUnit } from '@/components/AdSenseUnit';
 import Footer from '@/components/Footer';
 
+const ARTICLES_PER_PAGE = 16;
 
 interface Props {
   params: Promise<{ lang: 'en' | 'es' }>;
-  searchParams: Promise<{ cat?: string }>;
+  searchParams: Promise<{ cat?: string; page?: string }>;
 }
 
 export default async function Home({ params, searchParams }: Props) {
   const { lang } = await params;
-  const { cat } = await searchParams;
+  const { cat, page } = await searchParams;
   const dict = await getDictionary(lang);
   const supabase = getSupabaseAdmin();
+  const currentPage = Math.max(1, parseInt(page || '1', 10));
+  const offset = (currentPage - 1) * ARTICLES_PER_PAGE;
 
-  // 1. Fetch articles
+  // 1. Fetch articles with pagination
   let query = supabase
     .from('articles')
     .select('*')
@@ -29,7 +33,9 @@ export default async function Home({ params, searchParams }: Props) {
     query = query.eq('seo_metadata->>category', cat);
   }
 
-  const { data: articles, error } = await query.order('created_at', { ascending: false });
+  const { data: articles, error } = await query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + ARTICLES_PER_PAGE);
 
   // Translation mapping for categories
   const categoryDisplayNames: Record<string, string> = {
@@ -50,8 +56,9 @@ export default async function Home({ params, searchParams }: Props) {
     return <div className="p-20 text-center">{lang === 'es' ? 'Error cargando artículos.' : 'Error loading articles.'}</div>;
   }
 
-  const featuredArticle = articles?.[0];
-  const remainingArticles = articles?.slice(1);
+  const featuredArticle = currentPage === 1 && !cat ? articles?.[0] : null;
+  const remainingArticles = featuredArticle ? articles?.slice(1) : articles;
+  const hasMore = (articles?.length ?? 0) >= ARTICLES_PER_PAGE;
 
   // Helper to identify gadgets
   const isGadget = (name: string) => name.toLowerCase().match(/band|gtr|gafas|glasses|manta|sauna|reloj|watch/);
@@ -104,7 +111,6 @@ export default async function Home({ params, searchParams }: Props) {
 
         {cat === 'Recomendaciones' && products && products.length > 0 && (
           <section className="mb-20 space-y-20">
-            {/* Supplements Subsection */}
             {products.filter((p: any) => !isGadget(p.name)).length > 0 && (
               <div>
                 <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.3em] mb-8 flex items-center gap-4">
@@ -121,7 +127,6 @@ export default async function Home({ params, searchParams }: Props) {
               </div>
             )}
 
-            {/* Gadgets Subsection */}
             {products.filter((p: any) => isGadget(p.name)).length > 0 && (
               <div>
                 <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.3em] mb-8 flex items-center gap-4">
@@ -167,24 +172,37 @@ export default async function Home({ params, searchParams }: Props) {
             </div>
           )}
 
-        {/* Featured Article (Hero) */}
-        {featuredArticle && !cat && (
+        {/* Featured Article Hero */}
+        {featuredArticle && (
           <section className="mb-12 md:mb-20">
             <Link href={`/${lang}/${featuredArticle.slug}`} className="group relative block overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-zinc-900 aspect-square md:aspect-[21/9] shadow-2xl border border-zinc-800">
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 md:via-zinc-900/40 to-transparent z-10"></div>
-              {/* Decorative background element */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full -z-0"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/10 blur-[80px] rounded-full -z-0"></div>
+              {/* Cover Image */}
+              {featuredArticle.cover_image_url ? (
+                <Image
+                  src={featuredArticle.cover_image_url}
+                  alt={featuredArticle.cover_image_alt || featuredArticle.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 90vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  priority
+                />
+              ) : (
+                <>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[80px] rounded-full -z-0"></div>
+                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/10 blur-[80px] rounded-full -z-0"></div>
+                </>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent z-10"></div>
 
-              <div className="absolute bottom-0 left-0 w-full p-12 md:p-24 z-20 max-w-4xl">
+              <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-20 max-w-4xl">
                 <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 bg-blue-600 text-white rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6 shadow-xl shadow-blue-900/40">
                   {dict.home.featured} • {dict.common.trust_score}: {featuredArticle.trust_score}%
                 </span>
                 <h2 className="text-2xl md:text-5xl font-black text-white leading-tight mb-4 md:mb-6 group-hover:text-blue-400 transition-colors font-heading">
                   {featuredArticle.title}
                 </h2>
-                <p className="text-zinc-400 text-sm md:text-xl line-clamp-3 md:line-clamp-2 font-medium leading-relaxed italic">
-                  "{featuredArticle.tl_dr}"
+                <p className="text-zinc-300 text-sm md:text-xl line-clamp-3 md:line-clamp-2 font-medium leading-relaxed italic">
+                  &ldquo;{featuredArticle.tl_dr}&rdquo;
                 </p>
               </div>
             </Link>
@@ -202,6 +220,19 @@ export default async function Home({ params, searchParams }: Props) {
                   href={`/${lang}/${article.slug}`}
                   className="group bg-zinc-900 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-zinc-800 shadow-sm hover:shadow-2xl hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
+                  {/* Article Card Thumbnail */}
+                  {article.cover_image_url && (
+                    <div className="relative w-full h-48 overflow-hidden shrink-0">
+                      <Image
+                        src={article.cover_image_url}
+                        alt={article.cover_image_alt || article.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/60 to-transparent" />
+                    </div>
+                  )}
                   <div className="p-6 md:p-8 flex-1">
                     <div className="flex items-center justify-between mb-4 md:mb-6">
                       <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 md:px-3 py-1 md:py-1.5 rounded-full border ${article.trust_score > 90
@@ -235,7 +266,29 @@ export default async function Home({ params, searchParams }: Props) {
               ))}
             </div>
 
-            {/* Home AdSense Placeholder */}
+            {/* Pagination */}
+            {(hasMore || currentPage > 1) && (
+              <div className="mt-16 flex items-center justify-center gap-4">
+                {currentPage > 1 && (
+                  <Link
+                    href={`/${lang}${cat ? `?cat=${cat}&` : '?'}page=${currentPage - 1}`}
+                    className="px-6 py-3 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 hover:border-zinc-700 transition-all"
+                  >
+                    ← {lang === 'es' ? 'Anterior' : 'Previous'}
+                  </Link>
+                )}
+                {hasMore && (
+                  <Link
+                    href={`/${lang}${cat ? `?cat=${cat}&` : '?'}page=${currentPage + 1}`}
+                    className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
+                  >
+                    {lang === 'es' ? 'Ver más artículos' : 'Load more articles'} →
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Home AdSense */}
             <AdSenseUnit
               slot="home_in_feed"
               className="mt-16 h-48"
@@ -280,4 +333,3 @@ export default async function Home({ params, searchParams }: Props) {
     </div>
   );
 }
-

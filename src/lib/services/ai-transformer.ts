@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Groq from 'groq-sdk';
 import type { PubMedStudy } from './pubmed';
+import { fetchUnsplashImage } from './unsplash';
 
 export type Locale = 'es' | 'en';
 
@@ -11,6 +12,10 @@ export interface StudyMetadata {
   trust_score: number;
   product_keywords: string[];
   category: 'Ciencia' | 'Recomendaciones' | 'Protocolos';
+  cover_image_url?: string | null;
+  cover_image_alt?: string | null;
+  cover_image_credit?: string | null;
+  cover_image_credit_url?: string | null;
 }
 
 export interface TransformedPost {
@@ -21,6 +26,10 @@ export interface TransformedPost {
     twitter: string;
     linkedin: string;
   };
+  cover_image_url?: string | null;
+  cover_image_alt?: string | null;
+  cover_image_credit?: string | null;
+  cover_image_credit_url?: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -414,9 +423,10 @@ LinkedIn: Professional. Lead with a bold data point. 3-4 bullet findings. CTA: "
     // Rate limit buffer
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const [content_html, social] = await Promise.all([
+    const [content_html, social, coverImage] = await Promise.all([
       this.generatePost(metadata, study, locale),
       this.generateSocialPosts(metadata, locale),
+      fetchUnsplashImage(metadata.product_keywords, metadata.title),
     ]);
 
     return {
@@ -424,6 +434,10 @@ LinkedIn: Professional. Lead with a bold data point. 3-4 bullet findings. CTA: "
       content_html,
       locale,
       social,
+      cover_image_url: coverImage?.url ?? null,
+      cover_image_alt: coverImage?.alt ?? null,
+      cover_image_credit: coverImage?.credit ?? null,
+      cover_image_credit_url: coverImage?.creditUrl ?? null,
     };
   }
 

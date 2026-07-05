@@ -113,6 +113,10 @@ export async function GET(request: Request) {
           tl_dr: transformed.metadata.tl_dr,
           trust_score: transformed.metadata.trust_score,
           status: 'published',
+          cover_image_url: transformed.cover_image_url ?? null,
+          cover_image_alt: transformed.cover_image_alt ?? null,
+          cover_image_credit: transformed.cover_image_credit ?? null,
+          cover_image_credit_url: transformed.cover_image_credit_url ?? null,
           seo_metadata: {
             locale: job.locale,
             category: transformed.metadata.category,

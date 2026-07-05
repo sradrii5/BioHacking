@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { ScientificSourceCard } from '@/components/ScientificSourceCard';
 import { NewsletterForm } from '@/components/NewsletterForm';
@@ -7,8 +8,7 @@ import { AdSenseUnit } from '@/components/AdSenseUnit';
 import { AITransformerService } from '@/lib/services/ai-transformer';
 import { Footer } from '@/components/Footer';
 import { TrustScoreTooltip } from '@/components/TrustScoreTooltip';
-
-
+import { AuthorBio } from '@/components/AuthorBio';
 import { getDictionary } from '@/lib/dictionaries';
 
 interface Props {
@@ -21,7 +21,13 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const { lang, slug } = await params;
   const supabase = getSupabaseAdmin();
-  const { data: article } = await supabase.from('articles').select('title, tl_dr').eq('slug', slug).single();
+  const { data: article } = await supabase
+    .from('articles')
+    .select('title, tl_dr, cover_image_url')
+    .eq('slug', slug)
+    .single();
+
+  const imageUrl = article?.cover_image_url || 'https://www.biohackerage.com/og-image.png';
 
   return {
     title: `${article?.title} | Longevity Biohacker`,
@@ -36,7 +42,7 @@ export async function generateMetadata({ params }: Props) {
       url: `https://www.biohackerage.com/${lang}/${slug}`,
       images: [
         {
-          url: '/og-image.png',
+          url: imageUrl,
           width: 1200,
           height: 630,
           alt: article?.title,
@@ -47,7 +53,7 @@ export async function generateMetadata({ params }: Props) {
       card: 'summary_large_image',
       title: article?.title,
       description: article?.tl_dr,
-      images: ['/og-image.png'],
+      images: [imageUrl],
     },
   };
 }
@@ -79,11 +85,9 @@ export default async function ArticlePage({ params }: Props) {
   }
 
   const study = article.studies;
-  // Get source URL: 1st from seo_metadata, 2nd from FK join, 3rd fuzzy match in studies table
   let sourceUrl = article.seo_metadata?.source_url || study?.source_url || null;
 
   if (!sourceUrl) {
-    // Fallback: find study by matching the first 40 chars of article title
     const titleSnippet = article.title.substring(0, 40);
     const { data: matchedStudy } = await supabase
       .from('studies')
@@ -94,7 +98,7 @@ export default async function ArticlePage({ params }: Props) {
     sourceUrl = matchedStudy?.source_url || null;
   }
 
-  // Clean tl_dr: remove 'tl;dr:' or 'TL;DR:' prefix if present
+  // Clean tl_dr
   const cleanTldr = article.tl_dr
     ? article.tl_dr.replace(/^tl;dr[:\s]*/i, '').replace(/<[^>]*>/g, '').trim()
     : null;
@@ -109,11 +113,52 @@ export default async function ArticlePage({ params }: Props) {
     finalContent = transformer.injectAffiliateLinks(finalContent, productList);
   }
 
+  // Schema.org Article JSON-LD
+  const schemaJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: cleanTldr || article.tl_dr,
+    image: article.cover_image_url
+      ? [article.cover_image_url]
+      : ['https://www.biohackerage.com/og-image.png'],
+    datePublished: article.created_at,
+    dateModified: article.updated_at || article.created_at,
+    author: {
+      '@type': 'Organization',
+      name: 'Biohacker Age Editorial Team',
+      url: `https://www.biohackerage.com/${lang}/about`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Biohacker Age',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.biohackerage.com/android-chrome-512x512.png',
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://www.biohackerage.com/${lang}/${slug}`,
+    },
+    ...(sourceUrl && {
+      citation: {
+        '@type': 'ScholarlyArticle',
+        url: sourceUrl,
+      },
+    }),
+  };
+
   return (
     <article className="min-h-screen bg-zinc-950 pb-20 text-zinc-50 font-sans">
+      {/* Schema.org JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJsonLd) }}
+      />
+
       {/* Hero Section */}
       <header className="relative pt-12 md:pt-24 pb-16 overflow-hidden">
-        {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
 
         <div className="container mx-auto px-4 max-w-4xl text-center">
@@ -126,7 +171,7 @@ export default async function ArticlePage({ params }: Props) {
           </Link>
 
           <div className="flex items-center justify-center gap-4 mb-8">
-            <TrustScoreTooltip 
+            <TrustScoreTooltip
               score={article.trust_score}
               label={dict.common.trust_score}
               description={lang === 'es'
@@ -161,18 +206,49 @@ export default async function ArticlePage({ params }: Props) {
         </div>
       </header>
 
+      {/* Cover Image — full width between hero and content */}
+      {article.cover_image_url && (
+        <div className="container mx-auto px-4 max-w-5xl mb-0 -mt-4">
+          <div className="relative w-full aspect-[21/9] overflow-hidden rounded-[2rem] shadow-2xl border border-zinc-800">
+            <Image
+              src={article.cover_image_url}
+              alt={article.cover_image_alt || article.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 80vw"
+              className="object-cover"
+              priority
+            />
+            {/* Unsplash attribution (required by Unsplash ToS) */}
+            {article.cover_image_credit && (
+              <a
+                href={article.cover_image_credit_url || 'https://unsplash.com?utm_source=biohackerage&utm_medium=referral'}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="absolute bottom-3 right-3 text-[9px] text-white/50 hover:text-white/80 transition-colors bg-zinc-950/60 px-2 py-1 rounded-full backdrop-blur-sm"
+              >
+                📷 {article.cover_image_credit} / Unsplash
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Content Section */}
       <main className="container mx-auto px-4 max-w-[1600px] py-12">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 lg:gap-16">
-          
-          {/* Spacer for XL to keep content centered */}
+
+          {/* Spacer for XL */}
           <div className="hidden xl:block xl:col-span-2"></div>
 
-          {/* Main Content Area - THE CENTERED CORE */}
+          {/* Main Content Area */}
           <div className="xl:col-span-7 space-y-12">
             <div className="bg-zinc-900/50 backdrop-blur-sm p-8 md:p-16 rounded-[3rem] border border-zinc-800/50 shadow-2xl">
+
+              {/* Author Bio — E-E-A-T */}
+              <AuthorBio lang={lang} />
+
               <div
-                className="prose prose-invert prose-xl max-w-none 
+                className="prose prose-invert prose-xl max-w-none
                   prose-headings:text-white prose-headings:font-black prose-headings:tracking-tighter prose-headings:font-heading
                   prose-p:text-zinc-300 prose-p:leading-[1.8] prose-p:font-medium
                   prose-strong:text-white prose-strong:font-black
@@ -215,11 +291,11 @@ export default async function ArticlePage({ params }: Props) {
               </div>
             </div>
 
-            {/* Newsletter Subscription Section */}
+            {/* Newsletter */}
             <NewsletterForm lang={lang} />
           </div>
 
-          {/* Sidebar - Positioned on the right without pushing the center */}
+          {/* Sidebar */}
           <aside className="xl:col-span-3 space-y-8">
             <div className="xl:sticky xl:top-12 space-y-8">
               <section>
@@ -233,9 +309,9 @@ export default async function ArticlePage({ params }: Props) {
                 />
               </section>
 
-              {/* AdSense Sidebar Placeholder */}
-              <AdSenseUnit 
-                slot="article_sidebar" 
+              {/* AdSense Sidebar */}
+              <AdSenseUnit
+                slot="article_sidebar"
                 className="h-[300px] xl:h-[600px]"
               />
             </div>
