@@ -39,18 +39,18 @@ export function NewsletterForm({ lang }: NewsletterFormProps) {
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-      {/* Decorative element */}
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 rounded-full blur-[80px] group-hover:bg-blue-500/20 transition-all duration-700"></div>
+    <div className="bg-zinc-900/60 border border-zinc-800/60 p-6 md:p-8 rounded-xl relative overflow-hidden">
+      {/* Subtle accent */}
+      <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-600/8 rounded-full blur-[60px] pointer-events-none" />
       
-      <div className="relative z-10 max-w-2xl mx-auto text-center">
-        <h2 className="text-2xl md:text-3xl font-black tracking-tighter mb-4 italic uppercase">
-          {lang === 'es' ? 'Únete a la' : 'Join the'} <span className="text-blue-500">Elite</span>
+      <div className="relative z-10">
+        <h2 className="text-lg font-bold tracking-tight mb-2 font-heading">
+          {lang === 'es' ? 'Ciencia en tu bandeja' : 'Science in your inbox'}
         </h2>
-        <p className="text-zinc-500 font-medium mb-8 text-[11px] md:text-xs leading-relaxed uppercase tracking-widest">
-          {lang === 'es' 
-            ? 'Protocolos de longevidad en tu bandeja de entrada.' 
-            : 'Longevity protocols in your inbox.'}
+        <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
+          {lang === 'es'
+            ? 'Los estudios más relevantes de la semana, curados y analizados.'
+            : 'The most relevant studies of the week, curated and analyzed.'}
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -60,12 +60,12 @@ export function NewsletterForm({ lang }: NewsletterFormProps) {
             placeholder={lang === 'es' ? 'tu@email.com' : 'you@email.com'}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-5 py-3.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-zinc-700"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-5 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-zinc-700"
           />
-          <button 
+          <button
             type="submit"
             disabled={status === 'loading'}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-[0.2em] text-[10px] py-4 rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98] disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm py-3 rounded-lg transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {status === 'loading' 
               ? (lang === 'es' ? 'Procesando...' : 'Processing...') 
@@ -79,10 +79,10 @@ export function NewsletterForm({ lang }: NewsletterFormProps) {
           </p>
         )}
 
-        <p className="mt-8 text-[9px] text-zinc-600 font-black uppercase tracking-widest leading-relaxed">
-          {lang === 'es' 
-            ? 'Cero spam, solo ciencia.' 
-            : 'Zero spam, pure science.'}
+        <p className="mt-6 text-[10px] text-zinc-600 leading-relaxed">
+          {lang === 'es'
+            ? 'Sin spam. Cancelación en un clic.'
+            : 'No spam. Unsubscribe anytime.'}
         </p>
       </div>
     </div>

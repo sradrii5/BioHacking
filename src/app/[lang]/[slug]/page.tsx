@@ -159,15 +159,15 @@ export default async function ArticlePage({ params }: Props) {
 
       {/* Hero Section */}
       <header className="relative pt-12 md:pt-24 pb-16 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-600/10 blur-[120px] rounded-full -z-10"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[400px] bg-blue-600/5 blur-[100px] rounded-full -z-10"></div>
 
         <div className="container mx-auto px-4 max-w-4xl text-center">
           {/* Back Button */}
           <Link
             href={`/${lang}`}
-            className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-12 text-[10px] font-black uppercase tracking-[0.3em] group"
+            className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-200 transition-colors mb-12 text-xs font-medium tracking-wide group"
           >
-            <span className="group-hover:-translate-x-1 transition-transform">←</span> {lang === 'es' ? 'Volver al Inicio' : 'Back to Home'}
+            <span className="group-hover:-translate-x-0.5 transition-transform">←</span> {lang === 'es' ? 'Volver al inicio' : 'Back to home'}
           </Link>
 
           <div className="flex items-center justify-center gap-4 mb-8">
@@ -184,20 +184,17 @@ export default async function ArticlePage({ params }: Props) {
             </span>
           </div>
 
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-12 tracking-tighter text-balance font-heading">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-12 tracking-tight text-balance font-heading">
             {article.title}
           </h1>
 
           {cleanTldr && (
-            <div className="relative group max-w-3xl mx-auto">
-              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-              <div className="relative bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
-                <h3 className="text-emerald-500 font-black uppercase tracking-[0.3em] text-[10px] mb-6 flex items-center justify-center gap-3">
-                  <span className="w-8 h-[1px] bg-emerald-500/30"></span>
-                  {lang === 'es' ? 'RESUMEN EJECUTIVO' : 'EXECUTIVE SUMMARY'}
-                  <span className="w-8 h-[1px] bg-emerald-500/30"></span>
-                </h3>
-                <p className="text-zinc-100 text-lg md:text-2xl leading-relaxed italic font-medium">
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-zinc-900/70 border border-zinc-800/80 p-7 md:p-10 rounded-xl">
+                <p className="text-zinc-400 text-[10px] font-semibold uppercase tracking-widest mb-4">
+                  {lang === 'es' ? 'Resumen' : 'Summary'}
+                </p>
+                <p className="text-zinc-200 text-lg md:text-xl leading-relaxed italic">
                   &ldquo;{cleanTldr}&rdquo;
                 </p>
               </div>
@@ -209,7 +206,7 @@ export default async function ArticlePage({ params }: Props) {
       {/* Cover Image — full width between hero and content */}
       {article.cover_image_url && (
         <div className="container mx-auto px-4 max-w-5xl mb-0 -mt-4">
-          <div className="relative w-full aspect-[21/9] overflow-hidden rounded-[2rem] shadow-2xl border border-zinc-800">
+          <div className="relative w-full aspect-[21/9] overflow-hidden rounded-xl border border-zinc-800/80">
             <Image
               src={article.cover_image_url}
               alt={article.cover_image_alt || article.title}
@@ -224,9 +221,10 @@ export default async function ArticlePage({ params }: Props) {
                 href={article.cover_image_credit_url || 'https://unsplash.com?utm_source=biohackerage&utm_medium=referral'}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="absolute bottom-3 right-3 text-[9px] text-white/50 hover:text-white/80 transition-colors bg-zinc-950/60 px-2 py-1 rounded-full backdrop-blur-sm"
+                className="absolute bottom-3 right-3 text-[9px] text-white/50 hover:text-white/80 transition-colors bg-zinc-950/60 px-2 py-1 rounded-md backdrop-blur-sm flex items-center gap-1"
               >
-                📷 {article.cover_image_credit} / Unsplash
+                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                {article.cover_image_credit} / Unsplash
               </a>
             )}
           </div>
@@ -242,7 +240,7 @@ export default async function ArticlePage({ params }: Props) {
 
           {/* Main Content Area */}
           <div className="xl:col-span-7 space-y-12">
-            <div className="bg-zinc-900/50 backdrop-blur-sm p-8 md:p-16 rounded-[3rem] border border-zinc-800/50 shadow-2xl">
+            <div className="bg-zinc-900/60 p-7 md:p-12 rounded-2xl border border-zinc-800/60">
 
               {/* Author Bio — E-E-A-T */}
               <AuthorBio lang={lang} />
@@ -283,8 +281,8 @@ export default async function ArticlePage({ params }: Props) {
               )}
 
               {/* Medical Disclaimer */}
-              <div className="mt-24 pt-12 border-t border-zinc-800 text-zinc-500 text-[11px] leading-relaxed italic bg-zinc-950/50 p-8 rounded-[2rem] border border-zinc-800">
-                <p className="mb-4 font-black text-zinc-400 uppercase tracking-widest text-[10px]">{dict.article.medical_disclaimer_title}</p>
+              <div className="mt-16 pt-10 border-t border-zinc-800/60 text-zinc-500 text-xs leading-relaxed italic">
+                <p className="mb-3 font-semibold text-zinc-400 uppercase tracking-wide text-[10px]">{dict.article.medical_disclaimer_title}</p>
                 <p>
                   {dict.article.medical_disclaimer}
                 </p>
