@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import sanitizeHtml from 'sanitize-html';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { ScientificSourceCard } from '@/components/ScientificSourceCard';
 import { NewsletterForm } from '@/components/NewsletterForm';
@@ -112,6 +113,37 @@ export default async function ArticlePage({ params }: Props) {
     }));
     finalContent = transformer.injectAffiliateLinks(finalContent, productList);
   }
+
+  // Sanitize HTML from DB to prevent Stored XSS.
+  // Allows structural + affiliate tags; strips script, iframe, on* handlers.
+  finalContent = sanitizeHtml(finalContent, {
+    allowedTags: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'br', 'hr',
+      'strong', 'em', 'b', 'i', 'u', 's', 'del',
+      'ul', 'ol', 'li',
+      'a',
+      'blockquote', 'pre', 'code',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'div', 'span',
+      'sup', 'sub',
+    ],
+    allowedAttributes: {
+      'a': ['href', 'target', 'rel', 'class'],
+      'span': ['class'],
+      'div': ['class'],
+      'table': ['class'],
+      'th': ['class', 'scope'],
+      'td': ['class'],
+      'code': ['class'],
+      'pre': ['class'],
+    },
+    allowedSchemes: ['https', 'http', 'mailto'],
+    // Disallow javascript: protocol in all attributes
+    allowedSchemesByTag: {
+      'a': ['https', 'http', 'mailto'],
+    },
+  });
 
   // Schema.org Article JSON-LD
   const schemaJsonLd = {

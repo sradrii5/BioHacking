@@ -1,21 +1,39 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { cookies } from 'next/headers';
 
+/**
+ * GET /api/db-test
+ * Health check endpoint — PROTECTED. Admin only.
+ * Do not expose in production without auth.
+ */
 export async function GET() {
+  // Only accessible to logged-in admins
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get('admin_session')?.value === 'true';
+
+  if (!isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const { data, error } = await supabase.from('studies').select('count', { count: 'exact', head: true });
-    
+    const supabase = getSupabaseAdmin();
+    const { count, error } = await supabase
+      .from('studies')
+      .select('*', { count: 'exact', head: true });
+
     if (error) throw error;
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Connection to Supabase successful',
-      count: data 
+      studies_count: count,
     });
-  } catch (error: any) {
-    return NextResponse.json({ 
-      success: false, 
-      message: error.message 
-    }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('[db-test] Error:', error);
+    return NextResponse.json(
+      { success: false, message: 'Database connection failed' },
+      { status: 500 }
+    );
   }
 }
