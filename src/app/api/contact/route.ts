@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { getContactLimiter, getIp, checkRateLimit } from '@/lib/ratelimit';
+import { checkRateLimit, getIp, CONTACT_LIMIT } from '@/lib/ratelimit';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const CONTACT_TO = 'contact@biohackerage.com';
@@ -18,9 +18,8 @@ function escHtml(str: string): string {
 
 export async function POST(req: NextRequest) {
   // Rate limiting: 5 messages per IP per 30 minutes
-  const limiter = getContactLimiter();
   const ip = getIp(req);
-  const rateLimitResponse = await checkRateLimit(limiter, ip);
+  const rateLimitResponse = await checkRateLimit(ip, CONTACT_LIMIT);
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
