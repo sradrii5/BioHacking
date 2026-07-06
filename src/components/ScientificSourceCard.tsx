@@ -45,18 +45,18 @@ export const ScientificSourceCard: React.FC<ScientificSourceCardProps> = ({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 shadow-2xl transition-all duration-300 hover:border-zinc-700">
+    <div className="bg-zinc-900/60 border border-zinc-800/60 rounded-xl p-6 transition-colors hover:border-zinc-700">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2 text-emerald-400 font-black">
-          <ShieldCheck size={18} />
-          <span className="text-[10px] uppercase tracking-[0.2em]">{dict.verified_source}</span>
+        <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+          <ShieldCheck size={16} />
+          <span className="text-[10px] uppercase tracking-widest">{dict.verified_source}</span>
         </div>
-        <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+        <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-medium">
           <Calendar size={14} />
           <span>
             {(() => {
@@ -70,14 +70,14 @@ export const ScientificSourceCard: React.FC<ScientificSourceCardProps> = ({
         </div>
       </div>
 
-      <h3 className="text-xl font-black text-white mb-6 leading-tight font-heading">
+      <h3 className="text-base font-bold text-zinc-100 mb-4 leading-snug font-heading tracking-tight">
         {title}
       </h3>
 
       <div className="mt-8 pt-8 border-t border-zinc-800 flex flex-col gap-6">
         <div className="flex flex-col">
           <div className="flex justify-between items-center mb-3">
-            <span className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-black">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">
               {dict.trust_score}
             </span>
             <span className={`text-xs font-black ${
@@ -98,7 +98,7 @@ export const ScientificSourceCard: React.FC<ScientificSourceCardProps> = ({
           href={sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full flex items-center justify-center gap-3 bg-zinc-800 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all shadow-xl active:scale-95"
+          className="w-full flex items-center justify-center gap-2 bg-zinc-800/80 text-zinc-200 py-3 rounded-lg text-xs font-semibold hover:bg-zinc-700 hover:text-white transition-all active:scale-[0.98]"
         >
           {dict.original_study}
           <ExternalLink size={16} />

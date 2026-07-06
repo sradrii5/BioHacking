@@ -15,7 +15,7 @@ export function AuthorBio({ lang }: Props) {
   return (
     <div className="flex items-start gap-5 py-8 border-y border-zinc-800/60 mb-10">
       {/* Avatar */}
-      <div className="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-blue-900/30">
+      <div className="shrink-0 w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-xs">
         BH
       </div>
 
@@ -37,7 +37,7 @@ export function AuthorBio({ lang }: Props) {
         </p>
         <Link
           href={`/${lang}/about`}
-          className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:text-blue-400 transition-colors"
+          className="inline-flex items-center gap-1 mt-2 text-xs text-zinc-600 hover:text-blue-400 transition-colors"
         >
           {isEs ? 'Sobre nuestra metodología' : 'About our methodology'} →
         </Link>

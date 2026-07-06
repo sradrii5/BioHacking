@@ -15,8 +15,8 @@ export function Footer({ lang, dict }: Props) {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-12 mb-16">
           {/* Brand */}
           <div className="max-w-xs">
-            <p className="text-zinc-400 text-sm font-black uppercase tracking-[0.4em] mb-3 font-heading">
-              LONGEVITY<span className="text-blue-500">BIOHACKER</span>
+            <p className="text-zinc-400 text-sm font-semibold tracking-tight mb-3 font-heading">
+              LONGEVITY<span className="text-blue-400">BIOHACKER</span>
             </p>
             <p className="text-zinc-600 text-xs leading-relaxed">
               {isEs
@@ -29,7 +29,7 @@ export function Footer({ lang, dict }: Props) {
           <div className="flex flex-wrap gap-x-16 gap-y-8">
             {/* Platform */}
             <div>
-              <p className="text-zinc-600 text-[9px] font-black uppercase tracking-[0.3em] mb-4">
+              <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-widest mb-4">
                 {isEs ? 'Plataforma' : 'Platform'}
               </p>
               <div className="flex flex-col gap-3">
@@ -50,7 +50,7 @@ export function Footer({ lang, dict }: Props) {
 
             {/* Company */}
             <div>
-              <p className="text-zinc-600 text-[9px] font-black uppercase tracking-[0.3em] mb-4">
+              <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-widest mb-4">
                 {isEs ? 'Empresa' : 'Company'}
               </p>
               <div className="flex flex-col gap-3">
@@ -85,10 +85,10 @@ export function Footer({ lang, dict }: Props) {
 
         {/* Divider */}
         <div className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-          <p className="text-zinc-700 text-[9px] uppercase tracking-[0.2em] font-black">
+          <p className="text-zinc-700 text-[10px] tracking-wide">
             © 2026 Biohacker Age · {dict.footer.rights}
           </p>
-          <p className="text-zinc-800 text-[9px] uppercase tracking-[0.15em] font-black max-w-md">
+          <p className="text-zinc-800 text-[10px] max-w-md">
             {isEs
               ? 'Contenido exclusivamente informativo. No constituye consejo médico.'
               : 'Content for informational purposes only. Not medical advice.'}

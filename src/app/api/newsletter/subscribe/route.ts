@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
 
   } catch (error: any) {
-    console.error('Newsletter Subscription Error:', error.message);
-    return NextResponse.json({ error: `Error Servidor: ${error.message || 'Fallo crítico'}` }, { status: 500 });
+    console.error('Newsletter Subscription Error:', error);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
