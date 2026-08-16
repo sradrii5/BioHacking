@@ -59,7 +59,7 @@ Rules:
  * Master system prompt for article generation (Step 2).
  * This is the core of the AdSense quality fix.
  */
-function buildGenerationSystemPrompt(locale: Locale): string {
+function buildGenerationSystemPrompt(locale: Locale, structureVariant: 1 | 2 | 3): string {
   const lang = locale === 'es' ? 'Spanish' : 'English';
   const isEs = locale === 'es';
 
@@ -93,12 +93,25 @@ You will receive a structured data block with the study's raw metadata. You MUST
 - Do NOT suggest this replaces a doctor's advice for chronic conditions.
 - The disclaimer section handles legal coverage — do not over-hedge inside the article body.
 
+### Practical Application Honesty
+- The final section is MANDATORY and must be genuinely useful, not padding.
+- If the study's data supports a concrete action (timing, dose, frequency), state it plainly for a healthy adult optimizing performance — grounded ONLY in what THIS study's data shows.
+- If the finding is too early-stage (in vitro, animal-only, tiny n, mechanistic-only, no measured outcome in the abstract) to justify a real protocol, say so explicitly — ${isEs ? '"Es demasiado pronto para aplicar esto en un protocolo personal, pero..."' : '"It\'s too early to apply this to a personal protocol, but..."'} — then explain ONLY what would need to happen (human trials, replication, larger cohort) before it becomes actionable, and STOP there.
+- NEVER invent a dose, timing, or protocol the study does not support.
+- NEVER follow a "too early to apply" statement with generic reassurance about the compound/intervention's general safety or effectiveness from outside knowledge. That reintroduces the exact unsubstantiated claim you just said was too early — it is not grounded in THIS study and must not appear. If it's too early, the section ends after explaining what's missing — it does not pivot to selling the reader on the intervention anyway.
+- FORBIDDEN PATTERN — this exact shape is banned, do not produce anything resembling it:
+  ${isEs
+    ? '"Es demasiado pronto para aplicar esto... Sin embargo, es importante destacar que [compuesto] ha demostrado ser seguro/efectivo para..." — the "Sin embargo" clause is the violation. If your draft sentence starts with "Sin embargo" or "No obstante" right after the too-early statement in this section, DELETE that sentence. The section ends at "...antes de que sea accionable." Nothing more.'
+    : '"It\'s too early to apply this... However, it\'s worth noting that [compound] has been shown to be safe/effective for..." — the "However" clause is the violation. If your draft sentence starts with "However" or "That said" right after the too-early statement in this section, DELETE that sentence. The section ends at "...before it becomes actionable." Nothing more.'
+  }
+
 ## MANDATORY ARTICLE STRUCTURE
 
 Output clean HTML using: h2, h3, p, ul, li, strong, table, thead, tbody, tr, th, td.
 Do NOT output Markdown. Do NOT wrap in \`\`\`html\`\`\`.
+This article must use Structure Variant ${structureVariant} below — do not blend it with other variants.
 
-${isEs ? buildSpanishStructure() : buildEnglishStructure()}
+${isEs ? buildSpanishStructure(structureVariant) : buildEnglishStructure(structureVariant)}
 
 ## STYLE
 - Tone: Direct, precise, intellectually curious. Like a scientist friend explaining their work over coffee.
@@ -107,92 +120,136 @@ ${isEs ? buildSpanishStructure() : buildEnglishStructure()}
 - Numbers: Always use numerals (23%, not twenty-three percent).`;
 }
 
-function buildSpanishStructure(): string {
-  return `### Estructura para categoría 'Ciencia' / 'Recomendaciones':
+const ES_DISCLAIMER = `<hr>
+<p class="disclaimer"><strong>Aviso Legal:</strong> Este artículo tiene carácter exclusivamente informativo y divulgativo. La información presentada no constituye consejo médico, diagnóstico ni tratamiento. Consulta a un profesional de la salud cualificado antes de modificar tu dieta, suplementación o rutinas de ejercicio. Los estudios científicos citados reflejan el estado del conocimiento en su fecha de publicación y pueden estar sujetos a revisión.</p>`;
 
-<h2>El Estudio</h2>
-→ Contexto del gap de conocimiento que este estudio llena. NO repitas el título. Nombra autores e institución. Metodología exacta y tamaño muestral.
+const EN_DISCLAIMER = `<hr>
+<p class="disclaimer"><strong>Disclaimer:</strong> This article is for informational and educational purposes only. The information presented does not constitute medical advice, diagnosis, or treatment. Consult a qualified healthcare professional before modifying your diet, supplementation, or exercise routines. The scientific studies cited reflect the state of knowledge at their publication date and may be subject to revision.</p>`;
 
-<h2>Qué Midieron y Qué Encontraron</h2>
-→ Variables primarias de outcome con datos concretos (porcentajes, p-values, effect sizes). Incluye grupo control si aplica. Usa una tabla comparativa si hay 3+ variables con valores numéricos.
+/**
+ * Three rotating structure variants, picked randomly per article (see generatePost).
+ * Independent of category — the goal is to avoid every article looking identical,
+ * not to encode category rules here. Every variant ends in a mandatory
+ * "Aplicación Práctica" section (see Practical Application Honesty rule above).
+ */
+function buildSpanishStructure(variant: 1 | 2 | 3): string {
+  if (variant === 1) {
+    return `<h2>El Hallazgo</h2>
+→ Qué encontraron, en una frase clara con el dato clave. Nombra autores, institución, metodología exacta y tamaño muestral.
 
-<h2>El Mecanismo: Por Qué Funciona</h2>
-→ Explica la vía biológica o molecular subyacente. Cita cualquier biomarcador o pathway nombrado en el estudio (mTOR, AMPK, HIF-1α, etc.). Esta sección NO debe solaparse con la anterior.
+<h2>Cómo Llegaron a Esta Conclusión</h2>
+→ Diseño del estudio, variables medidas, grupo control si aplica. Usa una tabla comparativa si hay 3+ variables con valores numéricos.
 
-<h2>Protocolo de Aplicación Práctica</h2>
-→ OBLIGATORIO. Basándote en los datos del estudio, propón un protocolo accionable para un adulto sano interesado en optimización. Incluye: timing, dosis si aplica, frecuencia, sinergias. Usa listas con viñetas o pasos numerados. Si el estudio no proporciona dosis directas, extrapola desde la metodología e indícalo claramente.
+<h2>El Mecanismo: Qué Pasa a Nivel Biológico</h2>
+→ Vía molecular o biológica subyacente. Cita cualquier biomarcador o pathway nombrado en el estudio (mTOR, AMPK, HIF-1α, etc.). No solapes con la sección anterior.
 
 <h2>Limitaciones del Estudio</h2>
-→ 2-3 limitaciones concretas (tamaño muestral, duración, población específica, falta de grupo control, etc.). Honestidad científica = credibilidad.
+→ 2-3 limitaciones concretas (tamaño muestral, duración, población específica, falta de grupo control, etc.).
 
-<hr>
-<p class="disclaimer"><strong>Aviso Legal:</strong> Este artículo tiene carácter exclusivamente informativo y divulgativo. La información presentada no constituye consejo médico, diagnóstico ni tratamiento. Consulta a un profesional de la salud cualificado antes de modificar tu dieta, suplementación o rutinas de ejercicio. Los estudios científicos citados reflejan el estado del conocimiento en su fecha de publicación y pueden estar sujetos a revisión.</p>
+<h2>Aplicación Práctica</h2>
+→ Ver regla "Practical Application Honesty" arriba.
 
----
+${ES_DISCLAIMER}`;
+  }
 
-### Estructura para categoría 'Protocolos':
+  if (variant === 2) {
+    return `<h2>Los Números</h2>
+→ Abre con los datos concretos: porcentajes, p-values, effect sizes, tamaño muestral. Usa tabla comparativa si hay 3+ variables numéricas.
 
-<h2>El Objetivo</h2>
-→ Qué variable de rendimiento o salud se optimiza. Sin repetir el título.
+<h2>Contexto: Qué Estudio Es Este</h2>
+→ Autores, institución, metodología exacta, por qué se hizo este estudio.
 
-<h2>Fundamento Científico</h2>
-→ El mecanismo biológico con nombres de autores, institución y método. Datos cuantitativos.
+<h2>Qué Significa Este Resultado</h2>
+→ Interpretación del dato: qué cambia respecto a lo que ya se sabía. Menciona brevemente el mecanismo biológico o pathway implicado.
 
-<h2>El Protocolo Paso a Paso</h2>
-→ Instrucciones numeradas: dosis, timing, frecuencia, forma de administración. Usa los datos del estudio como base.
+<h2>Limitaciones del Estudio</h2>
+→ 2-3 limitaciones concretas (tamaño muestral, duración, población específica, falta de grupo control, etc.).
 
-<h2>Sinergias y Stack Recomendado</h2>
-→ Qué otros compuestos, prácticas o tecnologías potencian el efecto según la literatura.
+<h2>Aplicación Práctica</h2>
+→ Ver regla "Practical Application Honesty" arriba.
 
-<h2>Señales de Alerta y Contraindicaciones</h2>
-→ Poblaciones que deben evitarlo o ser cautelosas. Efectos adversos documentados.
+${ES_DISCLAIMER}`;
+  }
 
-<hr>
-<p class="disclaimer"><strong>Aviso Legal:</strong> Este artículo tiene carácter exclusivamente informativo y divulgativo. La información presentada no constituye consejo médico, diagnóstico ni tratamiento. Consulta a un profesional de la salud cualificado antes de modificar tu dieta, suplementación o rutinas de ejercicio. Los estudios científicos citados reflejan el estado del conocimiento en su fecha de publicación y pueden estar sujetos a revisión.</p>`;
+  return `<h2>La Pregunta</h2>
+→ Qué gap de conocimiento motivó este estudio. Sin repetir el título.
+
+<h2>El Experimento</h2>
+→ Autores, institución, metodología exacta, tamaño muestral, cómo lo midieron.
+
+<h2>Lo Que Encontraron</h2>
+→ Resultado con datos concretos (porcentajes, p-values, effect sizes).
+
+<h2>Por Qué Importa</h2>
+→ Mecanismo biológico o pathway implicado + implicación más amplia. No repitas la sección anterior.
+
+<h2>Limitaciones del Estudio</h2>
+→ 2-3 limitaciones concretas (tamaño muestral, duración, población específica, falta de grupo control, etc.).
+
+<h2>Aplicación Práctica</h2>
+→ Ver regla "Practical Application Honesty" arriba.
+
+${ES_DISCLAIMER}`;
 }
 
-function buildEnglishStructure(): string {
-  return `### Structure for 'Science' / 'Recommendations' category:
+function buildEnglishStructure(variant: 1 | 2 | 3): string {
+  if (variant === 1) {
+    return `<h2>The Finding</h2>
+→ What they found, in one clear sentence with the key data point. Name authors, institution, exact methodology, and sample size.
 
-<h2>The Study</h2>
-→ Context: what knowledge gap this study fills. Do NOT restate the title. Name lead author and institution. Exact methodology and sample size.
+<h2>How They Got There</h2>
+→ Study design, measured variables, control group if applicable. Use a comparison table if there are 3+ variables with numeric values.
 
-<h2>What They Measured and What They Found</h2>
-→ Primary outcome variables with concrete data (percentages, p-values, effect sizes). Include control group data if available. Use a comparison table if there are 3+ variables with numeric values.
-
-<h2>The Mechanism: Why It Works</h2>
-→ Explain the underlying biological or molecular pathway. Cite any biomarker or pathway named in the study (mTOR, AMPK, HIF-1α, etc.). This section must NOT overlap with the previous one.
-
-<h2>Practical Application Protocol</h2>
-→ MANDATORY. Based on the study's data, propose an actionable protocol for a healthy adult interested in optimization. Include: timing, dosage if applicable, frequency, synergies. Use bullet lists or numbered steps. If the study doesn't provide direct dosages, extrapolate from the methodology and say so clearly.
+<h2>The Mechanism: What Happens Biologically</h2>
+→ Underlying molecular or biological pathway. Cite any biomarker or pathway named in the study (mTOR, AMPK, HIF-1α, etc.). Do not overlap with the previous section.
 
 <h2>Study Limitations</h2>
-→ 2-3 specific limitations (sample size, duration, specific population, lack of control group, etc.). Scientific honesty = credibility.
+→ 2-3 specific limitations (sample size, duration, specific population, lack of control group, etc.).
 
-<hr>
-<p class="disclaimer"><strong>Disclaimer:</strong> This article is for informational and educational purposes only. The information presented does not constitute medical advice, diagnosis, or treatment. Consult a qualified healthcare professional before modifying your diet, supplementation, or exercise routines. The scientific studies cited reflect the state of knowledge at their publication date and may be subject to revision.</p>
+<h2>Practical Application</h2>
+→ See the "Practical Application Honesty" rule above.
 
----
+${EN_DISCLAIMER}`;
+  }
 
-### Structure for 'Protocols' category:
+  if (variant === 2) {
+    return `<h2>The Numbers</h2>
+→ Open with the concrete data: percentages, p-values, effect sizes, sample size. Use a comparison table if there are 3+ numeric variables.
 
-<h2>The Goal</h2>
-→ What performance or health variable is being optimized. No title repetition.
+<h2>Context: What This Study Is</h2>
+→ Authors, institution, exact methodology, why this study was done.
 
-<h2>Scientific Basis</h2>
-→ Biological mechanism with author names, institution, and method. Quantitative data.
+<h2>What This Result Means</h2>
+→ Interpret the data: what changes relative to what was already known. Briefly mention the biological mechanism or pathway involved.
 
-<h2>Step-by-Step Protocol</h2>
-→ Numbered instructions: dose, timing, frequency, administration route. Base it on study data.
+<h2>Study Limitations</h2>
+→ 2-3 specific limitations (sample size, duration, specific population, lack of control group, etc.).
 
-<h2>Synergies and Recommended Stack</h2>
-→ What compounds, practices, or technologies potentiate the effect according to the literature.
+<h2>Practical Application</h2>
+→ See the "Practical Application Honesty" rule above.
 
-<h2>Red Flags and Contraindications</h2>
-→ Populations who should avoid it or proceed with caution. Documented adverse effects.
+${EN_DISCLAIMER}`;
+  }
 
-<hr>
-<p class="disclaimer"><strong>Disclaimer:</strong> This article is for informational and educational purposes only. The information presented does not constitute medical advice, diagnosis, or treatment. Consult a qualified healthcare professional before modifying your diet, supplementation, or exercise routines. The scientific studies cited reflect the state of knowledge at their publication date and may be subject to revision.</p>`;
+  return `<h2>The Question</h2>
+→ What knowledge gap motivated this study. Do not restate the title.
+
+<h2>The Experiment</h2>
+→ Authors, institution, exact methodology, sample size, how they measured it.
+
+<h2>What They Found</h2>
+→ Result with concrete data (percentages, p-values, effect sizes).
+
+<h2>Why It Matters</h2>
+→ Biological mechanism or pathway involved + the broader implication. Do not repeat the previous section.
+
+<h2>Study Limitations</h2>
+→ 2-3 specific limitations (sample size, duration, specific population, lack of control group, etc.).
+
+<h2>Practical Application</h2>
+→ See the "Practical Application Honesty" rule above.
+
+${EN_DISCLAIMER}`;
 }
 
 /**
@@ -228,6 +285,35 @@ ${study.abstract}
 - **Target Title**: ${metadata.title}
 - **Key Benefits to Address**: ${metadata.key_benefits.join(' | ')}
 - **TL;DR (do not repeat verbatim — this is for context only)**: ${metadata.tl_dr}`;
+}
+
+/**
+ * Deterministic safety net for the Practical Application Honesty rule.
+ * The LLM (Groq/Llama-3.3-70b especially) sometimes ignores the prompt
+ * instruction and follows a "too early to apply" statement with a
+ * "Sin embargo / However" sentence that reintroduces generic, unsubstantiated
+ * reassurance about the intervention. Prompt tightening alone did not fully
+ * eliminate this — this strips that specific sentence deterministically.
+ */
+function stripPrematureReassurance(html: string, locale: Locale): string {
+  const heading = locale === 'es' ? 'Aplicaci[oó]n Pr[aá]ctica' : 'Practical Application';
+  const tooEarlyMarker = locale === 'es' ? /demasiado pronto/i : /too early/i;
+  const bannedStart = locale === 'es' ? /^(sin embargo|no obstante)\b/i : /^(however|that said)\b/i;
+
+  const sectionRegex = new RegExp(`(<h2>${heading}<\\/h2>\\s*<p>)([\\s\\S]*?)(<\\/p>)`, 'i');
+  const match = html.match(sectionRegex);
+  if (!match) return html;
+
+  const [, openTag, body, closeTag] = match;
+  if (!tooEarlyMarker.test(body)) return html;
+
+  const sentences = body.split(/(?<=[.!?])\s+/);
+  const cleaned = sentences.filter((s) => !bannedStart.test(s.trim())).join(' ').trim();
+
+  if (cleaned === body.trim()) return html;
+
+  console.log('🧹 Stripped a "sin embargo / however" reassurance sentence from Practical Application section');
+  return html.replace(sectionRegex, `${openTag}${cleaned}${closeTag}`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -312,7 +398,13 @@ export class AITransformerService {
     study: PubMedStudy,
     locale: Locale = 'es'
   ): Promise<string> {
-    const systemPrompt = buildGenerationSystemPrompt(locale);
+    // Pick one of 3 structure variants per article (not per category) so
+    // consecutive articles don't all read with the identical section layout.
+    // Fixed once here so Groq and any Gemini fallback attempt use the same variant.
+    const structureVariant = (Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3;
+    console.log(`📐 Using structure variant ${structureVariant} for "${metadata.title}"`);
+
+    const systemPrompt = buildGenerationSystemPrompt(locale, structureVariant);
     const userMessage = buildStudyDataBlock(study, metadata);
 
     if (this.groq) {
@@ -327,7 +419,7 @@ export class AITransformerService {
           temperature: 0.65, // Slightly creative but factually grounded
           max_tokens: 3500,
         });
-        return completion.choices[0]?.message?.content || '';
+        return stripPrematureReassurance(completion.choices[0]?.message?.content || '', locale);
       } catch (error: any) {
         console.warn('⚠️ Groq failed in generation, falling back to Gemini:', error.message);
       }
@@ -342,7 +434,7 @@ export class AITransformerService {
         console.log(`Trying Gemini (${modelName}) for generation...`);
         const result = await model.generateContent(`${systemPrompt}\n\n${userMessage}`);
         const text = result.response.text();
-        return text.replace(/```html\n?|```\n?/g, '').trim();
+        return stripPrematureReassurance(text.replace(/```html\n?|```\n?/g, '').trim(), locale);
       } catch (error: any) {
         lastError = error;
         if (error.status === 429) throw error;

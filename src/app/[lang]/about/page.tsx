@@ -65,6 +65,32 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: 'e
           </div>
         </section>
 
+        {/* Who's behind this — real authorship, not "Editorial Team" */}
+        <section className="py-20 border-b border-zinc-900">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="flex flex-col md:flex-row gap-8 items-start bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 md:p-12">
+              <div className="shrink-0 w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black text-xl">
+                AC
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter mb-4">
+                  {lang === 'es' ? 'Quién hay detrás' : 'Who is behind this'}
+                </h2>
+                <p className="text-zinc-400 leading-relaxed mb-4">
+                  {lang === 'es'
+                    ? 'Adrian Castro creó Biohacker Age para tener un sitio donde seguir de cerca la investigación en longevidad y optimización biológica sin depender de titulares sensacionalistas.'
+                    : 'Adrian Castro created Biohacker Age to have a place to closely follow longevity and biological optimization research without relying on sensationalist headlines.'}
+                </p>
+                <p className="text-zinc-500 text-sm leading-relaxed">
+                  {lang === 'es'
+                    ? 'El contenido se elabora con asistencia de IA a partir de literatura científica publicada (PubMed, bioRxiv) y se revisa editorialmente antes de publicarse. Ningún artículo sale sin pasar por esa revisión.'
+                    : 'Content is produced with AI assistance from published scientific literature (PubMed, bioRxiv) and is editorially reviewed before publishing. No article goes live without that review.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* What we do */}
         <section className="py-20 border-b border-zinc-900">
           <div className="container mx-auto px-4 max-w-4xl">

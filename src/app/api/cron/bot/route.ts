@@ -1,10 +1,31 @@
 import { NextResponse } from 'next/server';
-import { fetchPubMed, fetchScienceDaily } from '@/scripts/bot/fetchers';
-import { processArticle } from '@/scripts/bot/processor';
-import { publishArticle, isAlreadyPublished } from '@/scripts/bot/publisher';
+import { PubMedService, PubMedStudy } from '@/lib/services/pubmed';
+import { BioRxivService } from '@/lib/services/biorxiv';
+import { AITransformerService } from '@/lib/services/ai-transformer';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
-// This route is called by Vercel Cron.
+// Rotating topics so the daily search isn't always identical.
+const HOT_TOPICS = [
+  'longevity aging science',
+  'autophagy fasting',
+  'nootropics cognitive enhancement',
+  'peptide therapy longevity',
+  'microbiome health aging',
+  'sleep quality biohacking',
+  'mitochondria dysfunction',
+  'hormesis cold heat therapy',
+  'senolytic drugs',
+];
+
+export const maxDuration = 60;
+
+/**
+ * GET /api/cron/bot
+ * Called by Vercel Cron once a day. Publishes exactly ONE study per run
+ * (as 2 rows: es + en) through the structured ai-transformer.ts pipeline —
+ * the old free-form processor.ts/publisher.ts path is no longer used here.
+ * (Those files still exist for the manual `npm run bot` script — untouched.)
+ */
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const secret = process.env.CRON_SECRET;
@@ -13,43 +34,109 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  console.log('🤖 [CRON] Starting Biohacking Bot...');
-  const results = { processed: 0, skipped: 0, failed: 0, articles: [] as string[] };
+  const supabase = getSupabaseAdmin();
+  const pubmed = new PubMedService();
+  const biorxiv = new BioRxivService();
+  const transformer = new AITransformerService();
+
+  console.log('🤖 [CRON] Starting daily bot (1 study/day, structured pipeline)...');
 
   try {
-    const pubmedItems = await fetchPubMed();
-    const newsItems = await fetchScienceDaily();
-    const allItems = [...pubmedItems, ...newsItems];
+    // 1. Gather a small pool of candidates so we can skip already-published ones
+    const topic = HOT_TOPICS[Math.floor(Math.random() * HOT_TOPICS.length)];
+    const pmids = await pubmed.searchStudies(topic, 5);
+    const pubmedCandidates = await pubmed.fetchStudyDetails(pmids);
+    const biorxivCandidates = await biorxiv.fetchRecent(5);
 
-    console.log(`📡 [CRON] Found ${allItems.length} potential articles.`);
+    const candidates: PubMedStudy[] = [
+      ...pubmedCandidates,
+      ...biorxivCandidates.map((s) => ({
+        pmid: '',
+        title: s.title,
+        abstract: s.abstract,
+        pubDate: s.date,
+        url: `https://doi.org/${s.doi}`,
+        authors: [] as string[],
+        firstAuthorLastName: '',
+        institution: '',
+        journal: 'bioRxiv',
+        doi: s.doi,
+        sampleSizeHint: '',
+      })),
+    ];
 
-    let processedInThisRun = 0;
-    const MAX_ARTICLES_PER_RUN = 3;
+    console.log(`📡 [CRON] Found ${candidates.length} candidates for topic "${topic}".`);
 
-    for (const item of allItems) {
-      if (processedInThisRun >= MAX_ARTICLES_PER_RUN) break;
+    for (const study of candidates) {
+      const { data: existing } = await supabase
+        .from('studies')
+        .select('id')
+        .eq('source_url', study.url)
+        .single();
 
-      const alreadyExists = await isAlreadyPublished(item.link, item.title);
-      if (alreadyExists) {
-        results.skipped++;
+      if (existing) {
+        console.log(`⏭️ [CRON] Already published: ${study.title}`);
         continue;
       }
 
-      const processed = await processArticle(item);
-      if (processed) {
-        await publishArticle(processed);
-        results.processed++;
-        results.articles.push(processed.slug.es);
-        
-        processedInThisRun++;
-        console.log(`🎯 [CRON] Successfully published daily article: ${processed.slug.es}`);
-      } else {
-        results.failed++;
+      console.log(`🧠 [CRON] Processing: "${study.title}"`);
+
+      // 2. Save the raw study once
+      const { data: savedStudy, error: studyError } = await supabase
+        .from('studies')
+        .insert({
+          title: study.title,
+          source_url: study.url,
+          publish_date: study.pubDate,
+          raw_summary: study.abstract,
+        })
+        .select()
+        .single();
+
+      if (studyError) throw studyError;
+
+      // 3. Transform + publish both locales through the structured pipeline
+      const published: Record<string, string> = {};
+
+      for (const locale of ['es', 'en'] as const) {
+        const transformed = await transformer.transformStudy(study, locale);
+        const slugBase = transformed.metadata.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        const slug = `${slugBase}-${study.pmid || Math.random().toString(36).substring(2, 6)}-${locale}`;
+
+        const { error: articleError } = await supabase.from('articles').insert({
+          study_id: savedStudy.id,
+          title: transformed.metadata.title,
+          content_html: transformed.content_html,
+          slug,
+          tl_dr: transformed.metadata.tl_dr,
+          trust_score: transformed.metadata.trust_score,
+          status: 'published',
+          cover_image_url: transformed.cover_image_url ?? null,
+          cover_image_alt: transformed.cover_image_alt ?? null,
+          cover_image_credit: transformed.cover_image_credit ?? null,
+          cover_image_credit_url: transformed.cover_image_credit_url ?? null,
+          seo_metadata: {
+            locale,
+            category: transformed.metadata.category,
+            social: transformed.social,
+            source_url: study.url,
+          },
+        });
+
+        if (articleError) throw articleError;
+        published[locale] = slug;
+        console.log(`✅ [CRON] Published [${locale}]: ${slug}`);
       }
+
+      console.log('✅ [CRON] Bot finished. 1 study published in both languages.', published);
+      return NextResponse.json({ success: true, processed: 1, articles: published });
     }
 
-    console.log('✅ [CRON] Bot finished.', results);
-    return NextResponse.json({ success: true, ...results });
+    console.log('📭 [CRON] No new unpublished candidates found today.');
+    return NextResponse.json({ success: true, processed: 0, message: 'No new candidates found today.' });
 
   } catch (error: any) {
     console.error('💥 [CRON] Critical error:', error.message);
