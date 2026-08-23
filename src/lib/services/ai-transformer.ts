@@ -326,7 +326,7 @@ function stripPrematureReassurance(html: string, locale: Locale): string {
 export class AITransformerService {
   private genAI: GoogleGenerativeAI;
   private groq: Groq | null = null;
-  private primaryModelName = "gemini-2.0-flash";
+  private primaryModelName = "gemini-2.5-flash";
 
   constructor() {
     const geminiKey = process.env.GEMINI_API_KEY || '';
@@ -353,9 +353,9 @@ export class AITransformerService {
 
     if (this.groq) {
       try {
-        console.log('⚡ Trying Groq (llama-3.3-70b) for extraction...');
+        console.log('⚡ Trying Groq (gpt-oss-120b) for extraction...');
         const completion = await this.groq.chat.completions.create({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage },
@@ -369,7 +369,7 @@ export class AITransformerService {
       }
     }
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
+    const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
@@ -409,9 +409,9 @@ export class AITransformerService {
 
     if (this.groq) {
       try {
-        console.log('⚡ Trying Groq (llama-3.3-70b) for generation...');
+        console.log('⚡ Trying Groq (gpt-oss-120b) for generation...');
         const completion = await this.groq.chat.completions.create({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage },
@@ -425,7 +425,7 @@ export class AITransformerService {
       }
     }
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
+    const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
@@ -469,7 +469,7 @@ LinkedIn: Professional. Lead with a bold data point. 3-4 bullet findings. CTA: "
       try {
         console.log('⚡ Trying Groq for social posts...');
         const completion = await this.groq.chat.completions.create({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage },
@@ -483,7 +483,7 @@ LinkedIn: Professional. Lead with a bold data point. 3-4 bullet findings. CTA: "
       }
     }
 
-    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash"];
+    const modelsToTry = ["gemini-2.5-flash", "gemini-flash-latest"];
     let lastError: any;
 
     for (const modelName of modelsToTry) {
