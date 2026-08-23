@@ -95,11 +95,19 @@ export async function GET(request: Request) {
 
       if (studyError) throw studyError;
 
-      // 3. Transform + publish both locales through the structured pipeline
+      // 3. Transform both locales concurrently (each is a sequential Groq/Gemini
+      // chain on its own, and the two are independent — running them in parallel
+      // instead of a sequential loop is what keeps the whole run inside Vercel's
+      // 60s function cap on the Hobby plan).
       const published: Record<string, string> = {};
+      const locales = ['es', 'en'] as const;
+      const transformResults = await Promise.all(
+        locales.map((locale) => transformer.transformStudy(study, locale))
+      );
 
-      for (const locale of ['es', 'en'] as const) {
-        const transformed = await transformer.transformStudy(study, locale);
+      for (let i = 0; i < locales.length; i++) {
+        const locale = locales[i];
+        const transformed = transformResults[i];
         const slugBase = transformed.metadata.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
