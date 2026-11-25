@@ -5,7 +5,9 @@ import { fetchUnsplashImage } from '@/lib/services/unsplash';
 /**
  * GET /api/cron/backfill-images
  * Processes up to 40 articles without cover images per run.
- * Called by Vercel Cron every 2 hours.
+ * Called by Vercel Cron every 3 days (see vercel.json) — was daily, but
+ * backfilling old covers isn't time-sensitive, so this trades a few extra
+ * days of catch-up time for 1/3 of the invocations.
  * Protected by CRON_SECRET header.
  *
  * Unsplash demo tier: 50 req/hour → 40 articles/run leaves 10 req buffer.

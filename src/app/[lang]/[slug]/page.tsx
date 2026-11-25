@@ -12,6 +12,13 @@ import { TrustScoreTooltip } from '@/components/TrustScoreTooltip';
 import { AuthorBio } from '@/components/AuthorBio';
 import { getDictionary } from '@/lib/dictionaries';
 
+// Articles are effectively immutable once published (occasional cover-image
+// backfill is the only mutation). Without this, every request re-ran the
+// Supabase queries, the affiliate-link regex pass and sanitize-html parsing
+// from scratch — this route alone was the single biggest Active CPU
+// consumer on the Hobby plan. Cache the rendered page for an hour instead.
+export const revalidate = 3600;
+
 interface Props {
   params: Promise<{
     lang: 'en' | 'es';
