@@ -5,8 +5,10 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
  * GET /api/cron/worker
- * Processes ONE pending item from ingestion_queue.
- * Called by Vercel Cron every 10 minutes.
+ * Drains the ingestion_queue in a batch, one job at a time.
+ * Called by Vercel Cron once a day (see vercel.json) — the "every 10 minutes"
+ * this docstring used to claim was stale and didn't match the actual
+ * schedule; this route only ever runs on the cron's own trigger.
  * Protected by CRON_SECRET header.
  */
 export async function GET(request: Request) {
@@ -19,7 +21,12 @@ export async function GET(request: Request) {
 
   const supabase = getSupabaseAdmin();
   const startTime = Date.now();
-  const MAX_DURATION = 240000; // 240 seconds (leaving 60s buffer for Vercel's 300s limit)
+  const MAX_DURATION = 120000; // 120s cap (was 240s) — halves the worst-case
+  // wall-clock time of this function per run, which bounds how much Fluid
+  // Active CPU + GB-Hrs a single invocation can rack up on the Hobby plan.
+  const MAX_ITEMS_PER_RUN = 8; // stop early even if time remains; the queue
+  // will simply pick up the rest on tomorrow's run instead of trying to
+  // drain everything in one long-lived invocation.
   let processedCount = 0;
   let lastProcessedTitle = '';
 
@@ -42,7 +49,7 @@ export async function GET(request: Request) {
     .lt('processed_at', fiveMinsAgo);
 
   // LOOP: Process items while we have time and there are pending items
-  while (Date.now() - startTime < MAX_DURATION) {
+  while (Date.now() - startTime < MAX_DURATION && processedCount < MAX_ITEMS_PER_RUN) {
     // 1. Pick the oldest pending job
     const { data: job, error: fetchError } = await supabase
       .from('ingestion_queue')
